@@ -1,9 +1,6 @@
-// lib/src/js_interop_types.dart
-//
 // Extension types for every JS object this package touches.
 // Uses dart:js_interop exclusively — zero dart:html imports.
 // Compatible with dart2js AND dart2wasm.
-
 import 'dart:js_interop';
 // setProperty / getProperty / operator[] on JSObject live here, not in
 // dart:js_interop itself. Wasm-compatible; the name is a warning, not a ban.

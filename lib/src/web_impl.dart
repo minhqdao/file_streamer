@@ -1,28 +1,15 @@
-// lib/src/web_impl.dart
-//
-// Web platform implementation of StreamedFileUploaderPlatform.
-//
-// Key design decisions:
-//  • Uses dart:js_interop — no dart:html, no XFile.
-//  • Opens an OS-level file picker via window.showOpenFilePicker.
-//  • Pipes bytes through the browser's native ReadableStream without ever
-//    accumulating the full file in a Dart List/Uint8List.
-//  • StreamController is driven by an async JS reader loop — back-pressure
-//    is respected: the next reader.read() is not issued until the previous
-//    chunk has been consumed downstream.
-//  • H=FileSystemFileHandle: PickedFile<FileSystemFileHandle> is the concrete
-//    type throughout, so no runtime `is` / `as` cast is ever needed.
-
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:streamed_file_uploader/src/interface.dart';
 import 'package:streamed_file_uploader/src/js_interop_types.dart';
-
-// ---------------------------------------------------------------------------
-// Plugin registration
-// ---------------------------------------------------------------------------
+import 'package:streamed_file_uploader/src/picker/pick_exceptions.dart';
+import 'package:streamed_file_uploader/src/picker/picked_file.dart';
+import 'package:streamed_file_uploader/src/picker/picker_options.dart';
+import 'package:streamed_file_uploader/src/picker/picker_result.dart';
+import 'package:streamed_file_uploader/src/stream/stream_exceptions.dart';
+import 'package:streamed_file_uploader/src/stream/stream_options.dart';
 
 base class StreamedFileUploaderWeb
     extends StreamedFileUploaderPlatform<FileSystemFileHandle> {
@@ -30,26 +17,15 @@ base class StreamedFileUploaderWeb
     StreamedFileUploaderPlatform.instance = StreamedFileUploaderWeb();
   }
 
-  // -------------------------------------------------------------------------
-  // isSupported
-  // -------------------------------------------------------------------------
-
   @override
   bool get isSupported => isFileSystemAccessSupported;
-
-  // -------------------------------------------------------------------------
-  // pickFiles → FilePickerResult<FileSystemFileHandle>
-  // -------------------------------------------------------------------------
 
   @override
   Future<FilePickerResult<FileSystemFileHandle>> pickFiles(
     PickerOptions options,
   ) async {
     if (!isSupported) {
-      throw UnsupportedError(
-        'window.showOpenFilePicker is not available in this browser. '
-        'Chrome 86+, Edge 86+, and Opera 72+ are supported.',
-      );
+      throw UnsupportedError('window.showOpenFilePicker is not available.');
     }
 
     final jsOptions = buildPickerOptions(
@@ -78,10 +54,7 @@ base class StreamedFileUploaderWeb
       try {
         jsFile = await handle.getFile().toDart;
       } on Object catch (e) {
-        throw FilePickerException(
-          'Failed to resolve FileSystemFileHandle to File',
-          cause: e,
-        );
+        throw FilePickerException('Failed to resolve handle to File', cause: e);
       }
 
       pickedFiles.add(PickedFile(
@@ -91,8 +64,6 @@ base class StreamedFileUploaderWeb
         lastModified: DateTime.fromMillisecondsSinceEpoch(
           jsFile.lastModified.toInt(),
         ),
-        // Store the handle, not the File object — keeps the GC-able File
-        // off the long-lived heap; we re-call getFile() in openReadStream.
         handle: handle,
       ));
     }
@@ -100,30 +71,17 @@ base class StreamedFileUploaderWeb
     return FilePickerResult(files: pickedFiles);
   }
 
-  // -------------------------------------------------------------------------
-  // openReadStream — no cast needed; handle is already FileSystemFileHandle
-  // -------------------------------------------------------------------------
-
   @override
   Stream<Uint8List> openReadStream(
     PickedFile<FileSystemFileHandle> file, {
     ReadStreamOptions options = const ReadStreamOptions(),
   }) {
-    // file.handle is statically typed as FileSystemFileHandle — no `is` check,
-    // no `as` cast, no JS interop runtime-type-check warning.
     late StreamController<Uint8List> controller;
     controller = StreamController<Uint8List>(
       onListen: () => _pumpStream(file.handle, controller, options),
-      onCancel: () {
-        // Cancellation propagated inside _pumpStream via controller.isClosed.
-      },
     );
     return controller.stream;
   }
-
-  // -------------------------------------------------------------------------
-  // Internal helpers
-  // -------------------------------------------------------------------------
 
   Future<void> _pumpStream(
     FileSystemFileHandle handle,
@@ -134,9 +92,7 @@ base class StreamedFileUploaderWeb
     try {
       jsFile = await handle.getFile().toDart;
     } on Object catch (e) {
-      controller.addError(
-        ReadStreamException('Failed to open file for reading', cause: e),
-      );
+      controller.addError(ReadStreamException('Failed to open file', cause: e));
       await controller.close();
       return;
     }
@@ -153,10 +109,8 @@ base class StreamedFileUploaderWeb
         try {
           result = await reader.read().toDart;
         } on Object catch (e) {
-          controller.addError(
-            ReadStreamException('Error reading chunk from browser stream',
-                cause: e),
-          );
+          controller
+              .addError(ReadStreamException('Error reading chunk', cause: e));
           break;
         }
 
@@ -165,14 +119,11 @@ base class StreamedFileUploaderWeb
         final JSUint8Array? jsChunk = result.value;
         if (jsChunk == null) continue;
 
-        // .toDart: zero-copy view in dart2js; one copy in dart2wasm (unavoidable
-        // due to linear memory isolation). Either way, one allocation per chunk.
         final Uint8List dartChunk = jsChunk.toDart;
 
         if (dartChunk.lengthInBytes <= options.chunkSize) {
           controller.add(dartChunk);
         } else {
-          // Sub-chunk without re-allocation (sublistView is a view, not a copy).
           var offset = 0;
           while (offset < dartChunk.lengthInBytes) {
             final end =

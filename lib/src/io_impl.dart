@@ -1,14 +1,14 @@
 // lib/src/io_impl.dart
-//
-// Native (Android / iOS / macOS / Linux / Windows) implementation.
-// Uses dart:io File.openRead() — zero full-file buffering.
-// H=String: the handle is always an absolute file-system path.
-
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:streamed_file_uploader/src/interface.dart';
+import 'package:streamed_file_uploader/src/picker/picked_file.dart';
+import 'package:streamed_file_uploader/src/picker/picker_options.dart';
+import 'package:streamed_file_uploader/src/picker/picker_result.dart';
+import 'package:streamed_file_uploader/src/stream/stream_exceptions.dart';
+import 'package:streamed_file_uploader/src/stream/stream_options.dart';
 
 base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
   static void registerWith(dynamic registrar) {
@@ -21,10 +21,7 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
   @override
   Future<FilePickerResult<String>> pickFiles(PickerOptions options) {
     throw UnsupportedError(
-      'pickFiles() on native platforms requires a host-side method channel '
-      'implementation. Inject your picker via '
-      'StreamedFileUploaderPlatform.instance = MyNativePicker(), '
-      'then delegate streaming to StreamedFileUploaderIO.openReadStream().',
+      'pickFiles() on native platforms requires a host-side method channel implementation.',
     );
   }
 
@@ -33,7 +30,6 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
     PickedFile<String> file, {
     ReadStreamOptions options = const ReadStreamOptions(),
   }) {
-    // file.handle is statically a String — no cast, no type-check warning.
     final ioFile = io.File(file.handle);
 
     if (!ioFile.existsSync()) {
@@ -44,10 +40,6 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
 
     return _rechunk(ioFile.openRead(), options.chunkSize);
   }
-
-  // -------------------------------------------------------------------------
-  // Internal helpers
-  // -------------------------------------------------------------------------
 
   Stream<Uint8List> _rechunk(
     Stream<List<int>> source,
@@ -64,10 +56,6 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
     if (buffer.isNotEmpty) yield buffer.flush();
   }
 }
-
-// ---------------------------------------------------------------------------
-// Helper — fixed-capacity chunk buffer
-// ---------------------------------------------------------------------------
 
 final class _ChunkBuffer {
   _ChunkBuffer(this._capacity) : _data = Uint8List(_capacity);
@@ -95,19 +83,6 @@ final class _ChunkBuffer {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Utility — build a PickedFile<String> from a native file path
-// ---------------------------------------------------------------------------
-
-/// Convenience factory for native platforms.
-///
-/// Use this when your method-channel picker returns an absolute file path:
-/// ```dart
-/// final path = await pickFilePathFromMethodChannel();
-/// final file = pickedFileFromPath(path);
-/// final stream = StreamedFileUploaderPlatform.instance
-///     .openReadStream(file as PickedFile<String>);
-/// ```
 PickedFile<String> pickedFileFromPath(String absolutePath) {
   final ioFile = io.File(absolutePath);
   final stat = ioFile.statSync();
