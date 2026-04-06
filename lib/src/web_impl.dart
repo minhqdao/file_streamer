@@ -78,25 +78,39 @@ base class StreamedFileUploaderWeb
   }) {
     late StreamController<Uint8List> controller;
     controller = StreamController<Uint8List>(
-      onListen: () => _pumpStream(file.handle, controller, options),
+      onListen: () async {
+        WebFile jsFile;
+        try {
+          jsFile = await file.handle.getFile().toDart;
+        } on Object catch (e) {
+          controller
+              .addError(ReadStreamException('Failed to open file', cause: e));
+          await controller.close();
+          return;
+        }
+        await _pumpStreamFromBlob(jsFile, controller, options);
+      },
     );
     return controller.stream;
   }
 
-  Future<void> _pumpStream(
-    FileSystemFileHandle handle,
+  @override
+  Stream<Uint8List> openReadStreamFromBlob(
+    Object blob, {
+    ReadStreamOptions options = const ReadStreamOptions(),
+  }) {
+    late StreamController<Uint8List> controller;
+    controller = StreamController<Uint8List>(
+      onListen: () => _pumpStreamFromBlob(blob as WebFile, controller, options),
+    );
+    return controller.stream;
+  }
+
+  Future<void> _pumpStreamFromBlob(
+    WebFile jsFile,
     StreamController<Uint8List> controller,
     ReadStreamOptions options,
   ) async {
-    WebFile jsFile;
-    try {
-      jsFile = await handle.getFile().toDart;
-    } on Object catch (e) {
-      controller.addError(ReadStreamException('Failed to open file', cause: e));
-      await controller.close();
-      return;
-    }
-
     final JsReadableStream readableStream = jsFile.stream();
     final ReadableStreamDefaultReader reader = readableStream.getReader();
 

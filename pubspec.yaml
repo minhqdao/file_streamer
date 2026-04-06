@@ -16,7 +16,6 @@ topics:
 
 environment:
   sdk: "^3.6.0"
-  flutter: "^3.22.0"
 
 dependencies:
   web: ^1.1.1

@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -12,6 +15,10 @@ void main() {
   });
 
   group('StreamedFileUploader (Native IO)', () {
+    test('isSupported should be true on VM', () {
+      expect(StreamedFileUploader.isSupported, isTrue);
+    });
+
     late Directory tempDir;
 
     setUp(() {
@@ -70,10 +77,19 @@ void main() {
 
     test('should throw ReadStreamException for non-existent files', () {
       final nonExistentPath = p.join(tempDir.path, 'does_not_exist.txt');
+
       final pickedFile = pickedFileFromPath(nonExistentPath);
 
       final stream = StreamedFileUploader.openReadStream(pickedFile);
 
+      expect(
+        () => stream.drain(),
+        throwsA(isA<ReadStreamException>()),
+      );
+    });
+
+    test('openReadStreamFromBlob should throw on native platform', () {
+      final stream = StreamedFileUploader.openReadStreamFromBlob(Object());
       expect(
         () => stream.drain(),
         throwsA(isA<ReadStreamException>()),

@@ -28,4 +28,17 @@ abstract final class StreamedFileUploader {
         file,
         options: options,
       );
+
+  /// Streams the bytes from a platform-specific blob or file object.
+  ///
+  /// On Web, this accepts a `package:web` `Blob` or `File`.
+  /// On other platforms, this typically throws an [UnsupportedError].
+  static Stream<Uint8List> openReadStreamFromBlob(
+    Object blob, {
+    ReadStreamOptions options = const ReadStreamOptions(),
+  }) =>
+      StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
+        blob,
+        options: options,
+      );
 }

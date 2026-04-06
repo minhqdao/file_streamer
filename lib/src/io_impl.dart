@@ -1,4 +1,3 @@
-// lib/src/io_impl.dart
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
@@ -39,6 +38,17 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
     }
 
     return _rechunk(ioFile.openRead(), options.chunkSize);
+  }
+
+  @override
+  Stream<Uint8List> openReadStreamFromBlob(
+    Object blob, {
+    ReadStreamOptions options = const ReadStreamOptions(),
+  }) {
+    return Stream.error(
+      const ReadStreamException(
+          'Blobs are only supported on the Web platform.'),
+    );
   }
 
   Stream<Uint8List> _rechunk(
