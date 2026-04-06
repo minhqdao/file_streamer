@@ -1,6 +1,6 @@
 ## `streamed_file_uploader`
 
-A high-performance, memory-efficient file uploader for Flutter and Dart. Avoids pre-loading the entire file into RAM before processing by piping data as a stream.
+A high-performance, memory-efficient file uploader for Flutter and Dart. It avoids pre-loading the entire file into RAM before processing by piping data as a stream.
 
 ## Usage
 
