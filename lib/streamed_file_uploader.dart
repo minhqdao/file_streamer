@@ -32,7 +32,8 @@ export 'src/interface.dart'
 abstract final class StreamedFileUploader {
   StreamedFileUploader._();
 
-  static bool get isSupported => StreamedFileUploaderPlatform.instance.isSupported;
+  static bool get isSupported =>
+      StreamedFileUploaderPlatform.instance.isSupported;
 
   static Future<FilePickerResult<Object>> pickFiles([
     PickerOptions options = const PickerOptions(),

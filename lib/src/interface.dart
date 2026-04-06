@@ -57,7 +57,8 @@ final class PickedFile<H extends Object> {
   final H handle;
 
   @override
-  String toString() => 'PickedFile<$H>(name: $name, size: $size, mimeType: $mimeType)';
+  String toString() =>
+      'PickedFile<$H>(name: $name, size: $size, mimeType: $mimeType)';
 }
 
 /// Result returned from a single [StreamedFileUploaderPlatform.pickFiles] call.
@@ -173,8 +174,9 @@ final class FilePickerException implements Exception {
   final Object? cause;
 
   @override
-  String toString() =>
-      cause != null ? 'FilePickerException: $message (cause: $cause)' : 'FilePickerException: $message';
+  String toString() => cause != null
+      ? 'FilePickerException: $message (cause: $cause)'
+      : 'FilePickerException: $message';
 }
 
 final class ReadStreamException implements Exception {
@@ -183,6 +185,7 @@ final class ReadStreamException implements Exception {
   final Object? cause;
 
   @override
-  String toString() =>
-      cause != null ? 'ReadStreamException: $message (cause: $cause)' : 'ReadStreamException: $message';
+  String toString() => cause != null
+      ? 'ReadStreamException: $message (cause: $cause)'
+      : 'ReadStreamException: $message';
 }

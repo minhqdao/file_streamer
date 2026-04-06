@@ -24,7 +24,8 @@ import 'package:streamed_file_uploader/src/js_interop_types.dart';
 // Plugin registration
 // ---------------------------------------------------------------------------
 
-base class StreamedFileUploaderWeb extends StreamedFileUploaderPlatform<FileSystemFileHandle> {
+base class StreamedFileUploaderWeb
+    extends StreamedFileUploaderPlatform<FileSystemFileHandle> {
   static void registerWith(dynamic registrar) {
     StreamedFileUploaderPlatform.instance = StreamedFileUploaderWeb();
   }
@@ -54,7 +55,8 @@ base class StreamedFileUploaderWeb extends StreamedFileUploaderPlatform<FileSyst
     final jsOptions = buildPickerOptions(
       multiple: options.allowMultiple,
       types: _buildAcceptTypes(options.filters),
-      excludeAcceptAllOption: options.filters.isNotEmpty && !options.filters.contains(FileTypeFilter.any),
+      excludeAcceptAllOption: options.filters.isNotEmpty &&
+          !options.filters.contains(FileTypeFilter.any),
     );
 
     final JSArray<FileSystemFileHandle> handles;
@@ -152,7 +154,8 @@ base class StreamedFileUploaderWeb extends StreamedFileUploaderPlatform<FileSyst
           result = await reader.read().toDart;
         } on Object catch (e) {
           controller.addError(
-            ReadStreamException('Error reading chunk from browser stream', cause: e),
+            ReadStreamException('Error reading chunk from browser stream',
+                cause: e),
           );
           break;
         }
@@ -172,7 +175,8 @@ base class StreamedFileUploaderWeb extends StreamedFileUploaderPlatform<FileSyst
           // Sub-chunk without re-allocation (sublistView is a view, not a copy).
           var offset = 0;
           while (offset < dartChunk.lengthInBytes) {
-            final end = (offset + options.chunkSize).clamp(0, dartChunk.lengthInBytes);
+            final end =
+                (offset + options.chunkSize).clamp(0, dartChunk.lengthInBytes);
             controller.add(Uint8List.sublistView(dartChunk, offset, end));
             offset = end;
             if (controller.isPaused) await _waitForResume(controller);
@@ -201,10 +205,14 @@ base class StreamedFileUploaderWeb extends StreamedFileUploaderPlatform<FileSyst
 
       final mimeToExts = <String, List<String>>{};
       for (final mime in filter.mimeTypes) {
-        mimeToExts[mime] = filter.extensions.map((e) => e.startsWith('.') ? e : '.$e').toList();
+        mimeToExts[mime] = filter.extensions
+            .map((e) => e.startsWith('.') ? e : '.$e')
+            .toList();
       }
       if (mimeToExts.isEmpty && filter.extensions.isNotEmpty) {
-        mimeToExts['application/octet-stream'] = filter.extensions.map((e) => e.startsWith('.') ? e : '.$e').toList();
+        mimeToExts['application/octet-stream'] = filter.extensions
+            .map((e) => e.startsWith('.') ? e : '.$e')
+            .toList();
       }
 
       types.add(buildAcceptType(
