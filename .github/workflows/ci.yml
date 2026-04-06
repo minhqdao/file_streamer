@@ -16,6 +16,8 @@ jobs:
             - uses: actions/checkout@v6
             - uses: dart-lang/setup-dart@v1
             - run: dart pub get --no-example
+            - name: Exclude example for CI
+              run: echo -e "\nanalyzer:\n  exclude:\n    - \"example/**\"" >> analysis_options.yaml
             - run: dart analyze --fatal-infos --fatal-warnings
 
     test:
