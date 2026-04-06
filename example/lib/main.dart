@@ -1,14 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// Manual registration for native platforms since there's no native picker yet.
-// On Web, this is normally handled by auto-registration.
-import 'package:streamed_file_uploader/src/io_impl.dart';
 import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 
 void main() {
-  if (!kIsWeb) {
-    StreamedFileUploaderPlatform.instance = StreamedFileUploaderIO();
-  }
+  // Platform is now automatically registered via conditional imports.
   runApp(const MyApp());
 }
 
@@ -19,7 +13,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Streamed File Uploader Demo',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple), useMaterial3: true),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
       home: const MyHomePage(),
     );
   }
@@ -36,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // Configurable options
   bool _allowMultiple = false;
   FileTypeFilter _selectedFilter = FileTypeFilter.any;
-  double _chunkSizeKb = 256.0; // Default 256KB
+  double _chunkSizeKb = 256.0;
 
   // Status and results
   final List<UploadTask> _tasks = [];
@@ -49,7 +46,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      final options = PickerOptions(allowMultiple: _allowMultiple, filters: [_selectedFilter]);
+      final options = PickerOptions(
+        allowMultiple: _allowMultiple,
+        filters: [_selectedFilter],
+      );
 
       final result = await StreamedFileUploader.pickFiles(options);
 
@@ -65,7 +65,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Note: $e')));
       }
     } finally {
       setState(() => _isPicking = false);
@@ -87,7 +89,6 @@ class _MyHomePageState extends State<MyHomePage> {
           task.chunksCount++;
         });
 
-        // Simulate a small delay to visualize progress for small files
         if (task.file.size < 1024 * 1024) {
           await Future.delayed(const Duration(milliseconds: 10));
         }
@@ -114,14 +115,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 ? const Center(child: Text('No files picked yet.'))
                 : ListView.builder(
                     itemCount: _tasks.length,
-                    itemBuilder: (context, index) => _buildTaskTile(_tasks[index]),
+                    itemBuilder: (context, index) =>
+                        _buildTaskTile(_tasks[index]),
                   ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isPicking ? null : _pickAndStream,
-        label: _isPicking ? const CircularProgressIndicator() : const Text('Pick Files'),
+        label: _isPicking
+            ? const CircularProgressIndicator()
+            : const Text('Pick Files'),
         icon: _isPicking ? null : const Icon(Icons.file_upload),
       ),
     );
@@ -135,7 +139,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Picker Configuration', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Picker Configuration',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             SwitchListTile(
               title: const Text('Allow Multiple'),
               value: _allowMultiple,
@@ -146,15 +153,27 @@ class _MyHomePageState extends State<MyHomePage> {
               trailing: DropdownButton<FileTypeFilter>(
                 value: _selectedFilter,
                 items: const [
-                  DropdownMenuItem(value: FileTypeFilter.any, child: Text('Any')),
-                  DropdownMenuItem(value: FileTypeFilter.images, child: Text('Images')),
-                  DropdownMenuItem(value: FileTypeFilter.videos, child: Text('Videos')),
+                  DropdownMenuItem(
+                    value: FileTypeFilter.any,
+                    child: Text('Any'),
+                  ),
+                  DropdownMenuItem(
+                    value: FileTypeFilter.images,
+                    child: Text('Images'),
+                  ),
+                  DropdownMenuItem(
+                    value: FileTypeFilter.videos,
+                    child: Text('Videos'),
+                  ),
                 ],
                 onChanged: (val) => setState(() => _selectedFilter = val!),
               ),
             ),
             const Divider(),
-            const Text('Streaming Configuration', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Streaming Configuration',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             ListTile(
               title: Text('Chunk Size: ${_chunkSizeKb.toInt()} KB'),
               subtitle: Slider(
@@ -177,19 +196,29 @@ class _MyHomePageState extends State<MyHomePage> {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${(task.file.size / 1024).toStringAsFixed(2)} KB • Chunks: ${task.chunksCount}'),
+          Text(
+            '${(task.file.size / 1024).toStringAsFixed(2)} KB • Chunks: ${task.chunksCount}',
+          ),
           if (task.error != null)
-            Text('Error: ${task.error}', style: const TextStyle(color: Colors.red))
+            Text(
+              'Error: ${task.error}',
+              style: const TextStyle(color: Colors.red),
+            )
           else if (!task.isDone)
             LinearProgressIndicator(value: task.progress)
           else
             const Text(
               'Done!',
-              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
             ),
         ],
       ),
-      trailing: task.isDone ? const Icon(Icons.check_circle, color: Colors.green) : null,
+      trailing: task.isDone
+          ? const Icon(Icons.check_circle, color: Colors.green)
+          : null,
     );
   }
 }

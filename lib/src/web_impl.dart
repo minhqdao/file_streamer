@@ -4,8 +4,8 @@ import 'dart:typed_data';
 
 import 'package:streamed_file_uploader/src/interface.dart';
 import 'package:streamed_file_uploader/src/js_interop_types.dart';
-import 'package:streamed_file_uploader/src/picker/pick_exceptions.dart';
 import 'package:streamed_file_uploader/src/picker/picked_file.dart';
+import 'package:streamed_file_uploader/src/picker/picker_exceptions.dart';
 import 'package:streamed_file_uploader/src/picker/picker_options.dart';
 import 'package:streamed_file_uploader/src/picker/picker_result.dart';
 import 'package:streamed_file_uploader/src/stream/stream_exceptions.dart';
