@@ -2,40 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 
 void main() {
-  // Platform is now automatically registered via conditional imports.
-  runApp(const MyApp());
+  runApp(const ExampleApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ExampleApp extends StatelessWidget {
+  const ExampleApp();
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Streamed File Uploader Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
-    );
+    return const MaterialApp(home: MyHomePage());
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  const MyHomePage();
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Configurable options
   bool _allowMultiple = false;
   FileTypeFilter _selectedFilter = FileTypeFilter.any;
   double _chunkSizeKb = 256.0;
 
-  // Status and results
   final List<UploadTask> _tasks = [];
   bool _isPicking = false;
 
@@ -103,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Streamed File Uploader'),
+        title: const Text('Streamed File Uploader Demo'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Column(
@@ -224,11 +214,11 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class UploadTask {
+  UploadTask({required this.file});
+
   final PickedFile<Object> file;
   double progress = 0;
   int chunksCount = 0;
   bool isDone = false;
   String? error;
-
-  UploadTask({required this.file});
 }
