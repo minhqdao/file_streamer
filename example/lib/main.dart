@@ -65,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       int totalRead = 0;
       await for (final chunk in stream) {
+        if (task.isRemoved) break;
         totalRead += chunk.length;
         setState(() {
           task.progress = totalRead / task.file.size;
@@ -75,9 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
           await Future.delayed(const Duration(milliseconds: 150));
         }
       }
-      setState(() => task.isDone = true);
+      if (!task.isRemoved) setState(() => task.isDone = true);
     } catch (e) {
-      setState(() => task.error = e.toString());
+      if (!task.isRemoved) setState(() => task.error = e.toString());
     }
   }
 
@@ -97,7 +98,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 ? const Align(child: Text('No files picked yet.'))
                 : ListView.builder(
                     itemCount: _tasks.length,
-                    itemBuilder: (_, i) => BuildTaskTile(task: _tasks[i]),
+                    itemBuilder: (_, i) {
+                      final task = _tasks[i];
+                      return BuildTaskTile(
+                        key: ValueKey(task.file.handle),
+                        task: task,
+                        onRemove: () {
+                          setState(() {
+                            task.isRemoved = true;
+                            _tasks.removeAt(i);
+                          });
+                        },
+                      );
+                    },
                   ),
           ),
         ],
@@ -176,9 +189,10 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class BuildTaskTile extends StatelessWidget {
-  const BuildTaskTile({required this.task});
+  const BuildTaskTile({super.key, required this.task, required this.onRemove});
 
   final UploadTask task;
+  final void Function() onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -207,9 +221,10 @@ class BuildTaskTile extends StatelessWidget {
             ),
         ],
       ),
-      trailing: task.isDone
-          ? const Icon(Icons.check_circle, color: Colors.green)
-          : null,
+      trailing: IconButton(
+        icon: const Icon(Icons.close, color: Colors.grey),
+        onPressed: onRemove,
+      ),
     );
   }
 }
@@ -222,4 +237,5 @@ class UploadTask {
   int chunksCount = 0;
   bool isDone = false;
   String? error;
+  bool isRemoved = false;
 }
