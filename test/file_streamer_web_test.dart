@@ -53,6 +53,41 @@ void main() {
       expect(Uint8List.fromList(combined), equals(bytes));
     });
 
+    test('handles data chunks larger than chunkSize', () async {
+      // Browsers often emit chunks of varying sizes.
+      // We test that _pumpStreamFromBlob correctly re-chunks larger-than-chunkSize data.
+      const chunkSize = 100;
+      final bytes = Uint8List(250); // 2.5 chunks
+      final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
+
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(
+        blob,
+        options: const ReadStreamOptions(chunkSize: chunkSize),
+      );
+
+      final chunks = await stream.toList();
+      expect(chunks.length, equals(3));
+      expect(chunks[0].length, equals(100));
+      expect(chunks[1].length, equals(100));
+      expect(chunks[2].length, equals(50));
+    });
+
+    test('handles data chunks that are exact multiple of chunkSize', () async {
+      const chunkSize = 100;
+      final bytes = Uint8List(200);
+      final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
+
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(
+        blob,
+        options: const ReadStreamOptions(chunkSize: chunkSize),
+      );
+
+      final chunks = await stream.toList();
+      expect(chunks.length, equals(2));
+      expect(chunks[0].length, equals(100));
+      expect(chunks[1].length, equals(100));
+    });
+
     test('handles empty blobs', () async {
       final blob = web.Blob(<JSUint8Array>[].toJS);
       final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(blob);

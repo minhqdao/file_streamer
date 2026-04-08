@@ -90,6 +90,54 @@ void main() {
       expect(Uint8List.fromList(combinedData), equals(originalData));
     });
 
+    test('should handle empty files', () async {
+      final filePath = p.join(tempDir.path, 'empty.txt');
+      File(filePath).writeAsBytesSync([]);
+
+      final pickedFile = pickedFileFromPath(filePath);
+      expect(pickedFile.size, equals(0));
+
+      final stream = FileStreamer.openReadStream(pickedFile);
+      final result = await stream.toList();
+
+      expect(result, isEmpty);
+    });
+
+    test('should handle files smaller than chunkSize', () async {
+      final filePath = p.join(tempDir.path, 'small.txt');
+      final data = Uint8List.fromList([1, 2, 3]);
+      File(filePath).writeAsBytesSync(data);
+
+      final pickedFile = pickedFileFromPath(filePath);
+      final stream = FileStreamer.openReadStream(
+        pickedFile,
+        options: const ReadStreamOptions(chunkSize: 100),
+      );
+
+      final chunks = await stream.toList();
+      expect(chunks.length, equals(1));
+      expect(chunks.first, equals(data));
+    });
+
+    test('should handle files that are exact multiple of chunkSize', () async {
+      final filePath = p.join(tempDir.path, 'multiple.bin');
+      const chunkSize = 10;
+      final data = Uint8List(chunkSize * 3);
+      File(filePath).writeAsBytesSync(data);
+
+      final pickedFile = pickedFileFromPath(filePath);
+      final stream = FileStreamer.openReadStream(
+        pickedFile,
+        options: const ReadStreamOptions(chunkSize: chunkSize),
+      );
+
+      final chunks = await stream.toList();
+      expect(chunks.length, equals(3));
+      for (final chunk in chunks) {
+        expect(chunk.length, equals(chunkSize));
+      }
+    });
+
     test('should throw ReadStreamException for non-existent files', () {
       final nonExistentPath = p.join(tempDir.path, 'does_not_exist.txt');
       final pickedFile = pickedFileFromPath(nonExistentPath);
