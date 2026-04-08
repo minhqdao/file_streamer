@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 
-void main() {
-  runApp(const ExampleApp());
-}
+void main() => runApp(const ExampleApp());
 
 class ExampleApp extends StatelessWidget {
   const ExampleApp();
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(home: MyHomePage());
-  }
+  Widget build(BuildContext context) => const MaterialApp(home: MyHomePage());
 }
 
 class MyHomePage extends StatefulWidget {
@@ -30,10 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isPicking = false;
 
   Future<void> _pickAndStream() async {
-    setState(() {
-      _isPicking = true;
-      _tasks.clear();
-    });
+    setState(() => _isPicking = true);
 
     try {
       final options = PickerOptions(
@@ -42,7 +35,6 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       final result = await StreamedFileUploader.pickFiles(options);
-
       if (result.isEmpty) {
         setState(() => _isPicking = false);
         return;
@@ -57,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Note: $e')));
+        ).showSnackBar(SnackBar(content: SelectableText('Note: $e')));
       }
     } finally {
       setState(() => _isPicking = false);
@@ -80,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
 
         if (task.file.size < 1024 * 1024) {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 150));
         }
       }
       setState(() => task.isDone = true);
@@ -102,11 +94,10 @@ class _MyHomePageState extends State<MyHomePage> {
           const Divider(),
           Expanded(
             child: _tasks.isEmpty
-                ? const Center(child: Text('No files picked yet.'))
+                ? const Align(child: Text('No files picked yet.'))
                 : ListView.builder(
                     itemCount: _tasks.length,
-                    itemBuilder: (context, index) =>
-                        _buildTaskTile(_tasks[index]),
+                    itemBuilder: (_, i) => BuildTaskTile(task: _tasks[i]),
                   ),
           ),
         ],
@@ -114,7 +105,10 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isPicking ? null : _pickAndStream,
         label: _isPicking
-            ? const CircularProgressIndicator()
+            ? const SizedBox.square(
+                dimension: 24,
+                child: CircularProgressIndicator(),
+              )
             : const Text('Pick Files'),
         icon: _isPicking ? null : const Icon(Icons.file_upload),
       ),
@@ -125,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -179,8 +173,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
 
-  Widget _buildTaskTile(UploadTask task) {
+class BuildTaskTile extends StatelessWidget {
+  const BuildTaskTile({required this.task});
+
+  final UploadTask task;
+
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
       title: Text(task.file.name),
       subtitle: Column(

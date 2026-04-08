@@ -1,5 +1,6 @@
 name: streamed_file_uploader_example
 publish_to: "none"
+version: 0.1.0
 
 environment:
   sdk: ^3.11.4
