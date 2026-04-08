@@ -5,6 +5,7 @@ import 'package:file_streamer/src/picker/picked_file.dart';
 import 'package:file_streamer/src/picker/picker_exceptions.dart';
 import 'package:file_streamer/src/picker/picker_options.dart';
 import 'package:file_streamer/src/picker/picker_result.dart';
+import 'package:mime/mime.dart';
 
 Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
   try {
@@ -43,9 +44,7 @@ Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
       pickedFiles.add(PickedFile(
         name: platformFile.name,
         size: platformFile.size,
-        mimeType: _mimeFromExtension(
-          path.contains('.') ? path.substring(path.lastIndexOf('.')) : '',
-        ),
+        mimeType: lookupMimeType(path) ?? 'application/octet-stream',
         lastModified: stat.modified,
         handle: path,
       ));
@@ -56,15 +55,3 @@ Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
     throw FilePickerException('Native file picker failed', cause: e);
   }
 }
-
-String _mimeFromExtension(String ext) => switch (ext.toLowerCase()) {
-      '.jpg' || '.jpeg' => 'image/jpeg',
-      '.png' => 'image/png',
-      '.gif' => 'image/gif',
-      '.webp' => 'image/webp',
-      '.mp4' => 'video/mp4',
-      '.webm' => 'video/webm',
-      '.mov' => 'video/quicktime',
-      '.pdf' => 'application/pdf',
-      _ => 'application/octet-stream',
-    };

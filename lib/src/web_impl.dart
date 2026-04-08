@@ -10,6 +10,7 @@ import 'package:file_streamer/src/picker/picker_options.dart';
 import 'package:file_streamer/src/picker/picker_result.dart';
 import 'package:file_streamer/src/stream/stream_exceptions.dart';
 import 'package:file_streamer/src/stream/stream_options.dart';
+import 'package:mime/mime.dart';
 
 base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
   static void registerWith(dynamic registrar) {
@@ -168,21 +169,30 @@ base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
       if (filter.mimeTypes.isEmpty && filter.extensions.isEmpty) continue;
 
       final mimeToExts = <String, List<String>>{};
+      final extensions =
+          filter.extensions.map((e) => e.startsWith('.') ? e : '.$e').toList();
+
       for (final mime in filter.mimeTypes) {
-        mimeToExts[mime] = filter.extensions
-            .map((e) => e.startsWith('.') ? e : '.$e')
-            .toList();
-      }
-      if (mimeToExts.isEmpty && filter.extensions.isNotEmpty) {
-        mimeToExts['application/octet-stream'] = filter.extensions
-            .map((e) => e.startsWith('.') ? e : '.$e')
-            .toList();
+        mimeToExts[mime] = extensions;
       }
 
-      types.add(buildAcceptType(
-        description: filter.label,
-        accept: buildAcceptRecord(mimeToExts),
-      ));
+      // If no MIME types provided but extensions are, try to look them up.
+      if (mimeToExts.isEmpty) {
+        for (final ext in extensions) {
+          final mime = lookupMimeType(ext) ?? 'application/octet-stream';
+          if (!mimeToExts.containsKey(mime)) {
+            mimeToExts[mime] = [];
+          }
+          mimeToExts[mime]!.add(ext);
+        }
+      }
+
+      if (mimeToExts.isNotEmpty) {
+        types.add(buildAcceptType(
+          description: filter.label,
+          accept: buildAcceptRecord(mimeToExts),
+        ));
+      }
     }
     return types.toJS;
   }

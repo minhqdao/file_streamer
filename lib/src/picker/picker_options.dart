@@ -1,4 +1,6 @@
 // lib/src/picker/picker_options.dart
+import 'package:mime/mime.dart';
+
 /// Filter that restricts which file types appear in the OS picker dialog.
 final class FileTypeFilter {
   /// Creates a custom file type filter.
@@ -7,6 +9,35 @@ final class FileTypeFilter {
     required this.mimeTypes,
     required this.extensions,
   });
+
+  /// Creates a filter from a MIME type.
+  ///
+  /// Automatically determines common extensions for the given MIME type.
+  factory FileTypeFilter.fromMime(String mimeType, {String? label}) {
+    final extensions = [
+      extensionFromMime(mimeType)?.replaceFirst('.', ''),
+    ].whereType<String>().where((e) => e.isNotEmpty).toList();
+
+    return FileTypeFilter(
+      label: label ?? mimeType,
+      mimeTypes: [mimeType],
+      extensions: extensions,
+    );
+  }
+
+  /// Creates a filter from a file extension.
+  ///
+  /// Automatically determines the MIME type for the given extension.
+  factory FileTypeFilter.fromExtension(String extension, {String? label}) {
+    final ext = extension.startsWith('.') ? extension : '.$extension';
+    final mime = lookupMimeType(ext) ?? 'application/octet-stream';
+
+    return FileTypeFilter(
+      label: label ?? extension.toUpperCase(),
+      mimeTypes: [mime],
+      extensions: [extension.replaceFirst('.', '')],
+    );
+  }
 
   /// User-friendly label for the filter (e.g., "Documents").
   final String label;

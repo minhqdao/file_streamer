@@ -11,6 +11,7 @@ import 'package:file_streamer/src/picker/platform/picker_stub.dart'
     if (dart.library.ui) 'package:file_streamer/src/picker/platform/picker_ffi.dart';
 import 'package:file_streamer/src/stream/stream_exceptions.dart';
 import 'package:file_streamer/src/stream/stream_options.dart';
+import 'package:mime/mime.dart';
 
 base class FileStreamerIO extends FileStreamerPlatform<String> {
   static void registerWith(dynamic registrar) {
@@ -100,7 +101,7 @@ PickedFile<String> pickedFileFromPath(String absolutePath) {
   return PickedFile(
     name: absolutePath.split(io.Platform.pathSeparator).last,
     size: math.max(0, stat.size),
-    mimeType: '',
+    mimeType: lookupMimeType(absolutePath) ?? '',
     lastModified: stat.modified,
     handle: absolutePath,
   );

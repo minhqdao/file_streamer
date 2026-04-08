@@ -15,6 +15,20 @@ void main() {
     FileStreamerPlatform.instance = FileStreamerIO();
   });
 
+  group('FileTypeFilter', () {
+    test('fromMime should resolve common extensions', () {
+      final filter = FileTypeFilter.fromMime('application/pdf');
+      expect(filter.mimeTypes, contains('application/pdf'));
+      expect(filter.extensions, contains('pdf'));
+    });
+
+    test('fromExtension should resolve common mime types', () {
+      final filter = FileTypeFilter.fromExtension('png');
+      expect(filter.mimeTypes, contains('image/png'));
+      expect(filter.extensions, contains('png'));
+    });
+  });
+
   group('FileStreamer (Native IO)', () {
     test('isSupported should be true on VM', () {
       expect(FileStreamer.isSupported, isTrue);
@@ -37,6 +51,7 @@ void main() {
       File(filePath).writeAsBytesSync(expectedBytes);
 
       final pickedFile = pickedFileFromPath(filePath);
+      expect(pickedFile.mimeType, equals('text/plain'));
       final stream = FileStreamer.openReadStream(pickedFile);
 
       final List<int> streamedBytes = [];
