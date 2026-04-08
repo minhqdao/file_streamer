@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:file_streamer/src/interface.dart';
@@ -18,6 +17,9 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     FileStreamerPlatform.instance = FileStreamerWeb();
   }
 
+  /// Internal getter reflecting File System Access API availability.
+  bool get supportsSystemAccess => isFileSystemAccessSupported;
+
   @override
   bool get isSupported => true; // Web always supported (via fallback)
 
@@ -25,7 +27,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   Future<FilePickerResult<Object>> pickFiles(
     PickerOptions options,
   ) {
-    if (isFileSystemAccessSupported) {
+    if (supportsSystemAccess) {
       return _pickFilesWithSystemAccess(options);
     } else {
       return _pickFilesWithInputFallback(options);
@@ -88,13 +90,27 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
 
     final completer = Completer<FilePickerResult<WebFile>>();
 
+    // Timeout fallback for cancellation (~10 seconds)
+    final timer = Timer(const Duration(seconds: 10), () {
+      if (!completer.isCompleted) {
+        completer.complete(const FilePickerResult(files: []));
+      }
+    });
+
     late JSFunction changeListener;
+
+    void cleanup() {
+      timer.cancel();
+      input.removeEventListener('change', changeListener);
+      input.remove();
+    }
+
     changeListener = (JSAny? _) {
+      if (completer.isCompleted) return;
+
       final files = input.files;
       if (files == null || files.length == 0) {
-        if (!completer.isCompleted) {
-          completer.complete(const FilePickerResult(files: []));
-        }
+        completer.complete(const FilePickerResult(files: []));
       } else {
         final pickedFiles = <PickedFile<WebFile>>[];
         for (var i = 0; i < files.length; i++) {
@@ -110,19 +126,14 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
             handle: file,
           ));
         }
-        if (!completer.isCompleted) {
-          completer.complete(FilePickerResult(files: pickedFiles));
-        }
+        completer.complete(FilePickerResult(files: pickedFiles));
       }
-      input.removeEventListener('change', changeListener);
-      input.remove();
     }.toJS;
 
     input.addEventListener('change', changeListener);
-
     input.click();
 
-    return completer.future;
+    return completer.future.whenComplete(cleanup);
   }
 
   @override
@@ -134,21 +145,25 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     controller = StreamController<Uint8List>(
       onListen: () async {
         WebFile jsFile;
-        final handle = file.handle as JSObject;
-        if (handle.hasProperty('getFile'.toJS).toDart) {
+        final handle = file.handle;
+
+        // Use direct type checks as requested.
+        // ignore: invalid_runtime_check_with_js_interop_types
+        if (handle is FileSystemFileHandle) {
           try {
-            jsFile = await (handle as FileSystemFileHandle).getFile().toDart;
+            jsFile = await handle.getFile().toDart;
           } on Object catch (e) {
             controller
                 .addError(ReadStreamException('Failed to open file', cause: e));
             await controller.close();
             return;
           }
-        } else if (handle.hasProperty('stream'.toJS).toDart) {
-          jsFile = handle as WebFile;
+          // ignore: invalid_runtime_check_with_js_interop_types
+        } else if (handle is WebFile) {
+          jsFile = handle;
         } else {
-          controller.addError(
-              ReadStreamException('Unknown handle type: ${handle.runtimeType}'));
+          controller.addError(ReadStreamException(
+              'Unknown handle type: ${handle.runtimeType}'));
           await controller.close();
           return;
         }
