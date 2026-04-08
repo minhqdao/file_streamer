@@ -40,9 +40,18 @@ Future<void> main() async {
 ```
 
 ## Features
-- **Zero-RAM Bottleneck**: Handles 2GB+ files with the same memory footprint as a 10KB file.
+- **Constant-RAM**: Handles 2GB+ files with the same memory footprint as a 10KB file.
 - **True Streaming**: Pipes data directly from the OS buffer to a Dart `Stream<Uint8List>`.
 - **Wasm-Native**: Built using `dart:js_interop` and `package:web` (No legacy `dart:html`).
 - **Modern Standards**: Leverages the **File System Access API** with fallbacks for older systems.
 - **Pure Dart**: 100% UI-agnostic. Works on Web, Mobile, Desktop, and the CLI.
 
+## Setup
+
+macOS apps require file access entitlements to read user-selected files.
+
+Add the following to both `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
+
+```xml
+<key>com.apple.security.files.user-selected.read-only</key>
+<true/>

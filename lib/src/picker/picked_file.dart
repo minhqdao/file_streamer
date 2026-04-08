@@ -11,7 +11,7 @@ final class PickedFile<H extends Object> {
     required this.mimeType,
     required this.lastModified,
     required this.handle,
-  });
+  }) : assert(size >= 0, 'size must be non-negative');
 
   /// File name as reported by the OS / browser (e.g. "photo.jpg").
   final String name;
@@ -25,10 +25,21 @@ final class PickedFile<H extends Object> {
   /// Last-modified timestamp. Epoch if unavailable.
   final DateTime lastModified;
 
-  /// Platform-specific handle used internally.
+  /// Opaque platform-specific handle used internally to access the file.
+  ///
+  /// Do not depend on its type or contents.
   final H handle;
 
   @override
   String toString() =>
-      'PickedFile<$H>(name: $name, size: $size, mimeType: $mimeType)';
+      'PickedFile<$H>(name: $name, size: ${_formatSize(size)}, mimeType: $mimeType)';
+
+  String _formatSize(int bytes) {
+    if (bytes < 1024) return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)}GB';
+  }
 }

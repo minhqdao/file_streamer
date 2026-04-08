@@ -11,4 +11,7 @@ final class FilePickerResult<H extends Object> {
   bool get isEmpty => files.isEmpty;
   bool get isNotEmpty => files.isNotEmpty;
   int get count => files.length;
+
+  @override
+  String toString() => 'FilePickerResult<$H>(count: $count, files: $files)';
 }

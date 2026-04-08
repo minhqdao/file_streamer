@@ -6,6 +6,8 @@ import 'package:streamed_file_uploader/src/interface.dart';
 import 'package:streamed_file_uploader/src/picker/picked_file.dart';
 import 'package:streamed_file_uploader/src/picker/picker_options.dart';
 import 'package:streamed_file_uploader/src/picker/picker_result.dart';
+import 'package:streamed_file_uploader/src/picker/platform/picker_stub.dart'
+    if (dart.library.ui) 'package:streamed_file_uploader/src/picker/platform/picker_ffi.dart';
 import 'package:streamed_file_uploader/src/stream/stream_exceptions.dart';
 import 'package:streamed_file_uploader/src/stream/stream_options.dart';
 
@@ -19,9 +21,7 @@ base class StreamedFileUploaderIO extends StreamedFileUploaderPlatform<String> {
 
   @override
   Future<FilePickerResult<String>> pickFiles(PickerOptions options) {
-    throw UnsupportedError(
-      'pickFiles() on native platforms requires a host-side method channel implementation.',
-    );
+    return pickFilesNative(options);
   }
 
   @override

@@ -1,5 +1,5 @@
 name: streamed_file_uploader
-description: A high-performance, memory-efficient file uploader using native streams.
+description: A high-performance, memory-efficient file streamer.
 
 version: 0.1.0
 
@@ -8,16 +8,17 @@ homepage: https://github.com/minhqdao/streamed_file_uploader
 issue_tracker: https://github.com/minhqdao/streamed_file_uploader/issues
 
 topics:
+  - read
+  - load
   - upload
   - stream
-  - blob
-  - native
   - wasm
 
 environment:
   sdk: "^3.6.0"
 
 dependencies:
+  file_picker: ^11.0.2
   web: ^1.1.1
 
 dev_dependencies:

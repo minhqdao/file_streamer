@@ -1,4 +1,3 @@
-// lib/src/facade.dart
 import 'dart:typed_data';
 
 import 'package:streamed_file_uploader/src/interface.dart';
@@ -7,7 +6,7 @@ import 'package:streamed_file_uploader/src/picker/picker_options.dart';
 import 'package:streamed_file_uploader/src/picker/picker_result.dart';
 import 'package:streamed_file_uploader/src/stream/stream_options.dart';
 
-/// Thin static façade over [StreamedFileUploaderPlatform.instance].
+/// Thin static facade over [StreamedFileUploaderPlatform.instance].
 abstract final class StreamedFileUploader {
   StreamedFileUploader._();
 
@@ -26,19 +25,6 @@ abstract final class StreamedFileUploader {
   }) =>
       StreamedFileUploaderPlatform.instance.openReadStream(
         file,
-        options: options,
-      );
-
-  /// Streams the bytes from a platform-specific blob or file object.
-  ///
-  /// On Web, this accepts a `package:web` `Blob` or `File`.
-  /// On other platforms, this typically throws an [UnsupportedError].
-  static Stream<Uint8List> openReadStreamFromBlob(
-    Object blob, {
-    ReadStreamOptions options = const ReadStreamOptions(),
-  }) =>
-      StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
-        blob,
         options: options,
       );
 }

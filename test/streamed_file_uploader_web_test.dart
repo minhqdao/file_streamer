@@ -4,6 +4,7 @@ library;
 import 'dart:js_interop';
 import 'dart:typed_data';
 
+import 'package:streamed_file_uploader/src/interface.dart';
 import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
@@ -19,7 +20,8 @@ void main() {
       final bytes = Uint8List.fromList([1, 2, 3, 4, 5]).toJS;
       final blob = web.Blob(<JSUint8Array>[bytes].toJS);
 
-      final stream = StreamedFileUploader.openReadStreamFromBlob(blob);
+      final stream =
+          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.expand((bin) => bin).toList();
       expect(result, equals([1, 2, 3, 4, 5]));
@@ -35,7 +37,8 @@ void main() {
 
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
-      final stream = StreamedFileUploader.openReadStreamFromBlob(
+      final stream =
+          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );
@@ -54,7 +57,8 @@ void main() {
 
     test('handles empty blobs', () async {
       final blob = web.Blob(<JSUint8Array>[].toJS);
-      final stream = StreamedFileUploader.openReadStreamFromBlob(blob);
+      final stream =
+          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.toList();
       expect(result, isEmpty);
@@ -66,7 +70,8 @@ void main() {
       final bytes = Uint8List(totalSize);
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
-      final stream = StreamedFileUploader.openReadStreamFromBlob(
+      final stream =
+          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );

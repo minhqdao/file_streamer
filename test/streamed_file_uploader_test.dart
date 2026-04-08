@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
+import 'package:streamed_file_uploader/src/interface.dart';
 import 'package:streamed_file_uploader/src/io_impl.dart';
 import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 import 'package:test/test.dart';
@@ -77,19 +78,9 @@ void main() {
 
     test('should throw ReadStreamException for non-existent files', () {
       final nonExistentPath = p.join(tempDir.path, 'does_not_exist.txt');
-
       final pickedFile = pickedFileFromPath(nonExistentPath);
-
       final stream = StreamedFileUploader.openReadStream(pickedFile);
 
-      expect(
-        () => stream.drain(),
-        throwsA(isA<ReadStreamException>()),
-      );
-    });
-
-    test('openReadStreamFromBlob should throw on native platform', () {
-      final stream = StreamedFileUploader.openReadStreamFromBlob(Object());
       expect(
         () => stream.drain(),
         throwsA(isA<ReadStreamException>()),
