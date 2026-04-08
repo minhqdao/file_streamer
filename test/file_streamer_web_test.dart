@@ -4,15 +4,15 @@ library;
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'package:streamed_file_uploader/src/interface.dart';
-import 'package:streamed_file_uploader/streamed_file_uploader.dart';
+import 'package:file_streamer/file_streamer.dart';
+import 'package:file_streamer/src/interface.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
   test('isSupported should reflect browser capabilities', () {
     // In headless chrome, this should generally be true if the API is there
-    expect(StreamedFileUploader.isSupported, isA<bool>());
+    expect(FileStreamer.isSupported, isA<bool>());
   });
 
   group('Web Stream: openReadStreamFromBlob', () {
@@ -21,7 +21,7 @@ void main() {
       final blob = web.Blob(<JSUint8Array>[bytes].toJS);
 
       final stream =
-          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(blob);
+          FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.expand((bin) => bin).toList();
       expect(result, equals([1, 2, 3, 4, 5]));
@@ -38,7 +38,7 @@ void main() {
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
       final stream =
-          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
+          FileStreamerPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );
@@ -58,7 +58,7 @@ void main() {
     test('handles empty blobs', () async {
       final blob = web.Blob(<JSUint8Array>[].toJS);
       final stream =
-          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(blob);
+          FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.toList();
       expect(result, isEmpty);
@@ -71,7 +71,7 @@ void main() {
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
       final stream =
-          StreamedFileUploaderPlatform.instance.openReadStreamFromBlob(
+          FileStreamerPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );

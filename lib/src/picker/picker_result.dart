@@ -1,5 +1,5 @@
 // lib/src/picker/picker_result.dart
-import 'package:streamed_file_uploader/src/picker/picked_file.dart';
+import 'package:file_streamer/src/picker/picked_file.dart';
 
 /// Result returned from a single pickFiles call.
 final class FilePickerResult<H extends Object> {

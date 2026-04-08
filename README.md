@@ -1,15 +1,15 @@
-## `streamed_file_uploader`
+## `file_streamer`
 
-A high-performance, memory-efficient file uploader for Flutter and Dart. It avoids pre-loading the entire file into RAM before processing by piping data as a stream.
+A high-performance, constant-memory file streamer for Flutter and Dart. It avoids pre-loading the entire file into RAM and instead pipes data directly as a stream.
 
 ## Usage
 
 ```dart
-import 'package:streamed_file_uploader/streamed_file_uploader.dart';
+import 'package:file_streamer/file_streamer.dart';
 
 Future<void> main() async {
   // 1. Pick one or more images
-  final result = await StreamedFileUploader.pickFiles(
+  final result = await FileStreamer.pickFiles(
     const PickerOptions(
       allowMultiple: false,
       filters: [FileTypeFilter.images],
@@ -22,7 +22,7 @@ Future<void> main() async {
   print('Selected: ${file.name} (${file.size} bytes)');
 
   // 2. Open a read stream
-  final stream = StreamedFileUploader.openReadStream(
+  final stream = FileStreamer.openReadStream(
     file,
     options: const ReadStreamOptions(chunkSize: 1024 * 512), // 512 KB chunks
   );
@@ -46,11 +46,29 @@ Future<void> main() async {
 - **Modern Standards**: Leverages the **File System Access API** with fallbacks for older systems.
 - **Pure Dart**: 100% UI-agnostic. Works on Web, Mobile, Desktop, and the CLI.
 
+## Installation
+
+Run
+
+```bash
+dart pub add file_streamer
+```
+
+in your project root or add:
+
+```yaml
+file_streamer: ^0.1.0
+```
+
+to the dependencies section in your `pubspec.yaml`.
+
 ## Setup
+
+### macOS
 
 macOS apps require file access entitlements to read user-selected files.
 
-Add the following to both `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
+Add the following to `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
 
 ```xml
 <key>com.apple.security.files.user-selected.read-only</key>

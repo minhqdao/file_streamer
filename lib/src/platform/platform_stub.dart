@@ -1,5 +1,5 @@
-import 'package:streamed_file_uploader/src/interface.dart';
+import 'package:file_streamer/src/interface.dart';
 
-StreamedFileUploaderPlatform<Object> createPlatform() => throw UnsupportedError(
+FileStreamerPlatform<Object> createPlatform() => throw UnsupportedError(
       'Cannot create a platform without a concrete implementation.',
     );

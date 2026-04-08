@@ -1,10 +1,10 @@
 // lib/src/picker/platform/picker_ffi.dart
 import 'dart:io' as io;
 import 'package:file_picker/file_picker.dart' as fp;
-import 'package:streamed_file_uploader/src/picker/picked_file.dart';
-import 'package:streamed_file_uploader/src/picker/picker_exceptions.dart';
-import 'package:streamed_file_uploader/src/picker/picker_options.dart';
-import 'package:streamed_file_uploader/src/picker/picker_result.dart';
+import 'package:file_streamer/src/picker/picked_file.dart';
+import 'package:file_streamer/src/picker/picker_exceptions.dart';
+import 'package:file_streamer/src/picker/picker_options.dart';
+import 'package:file_streamer/src/picker/picker_result.dart';
 
 Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
   try {

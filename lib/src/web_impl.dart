@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'package:streamed_file_uploader/src/interface.dart';
-import 'package:streamed_file_uploader/src/js_interop_types.dart';
-import 'package:streamed_file_uploader/src/picker/picked_file.dart';
-import 'package:streamed_file_uploader/src/picker/picker_exceptions.dart';
-import 'package:streamed_file_uploader/src/picker/picker_options.dart';
-import 'package:streamed_file_uploader/src/picker/picker_result.dart';
-import 'package:streamed_file_uploader/src/stream/stream_exceptions.dart';
-import 'package:streamed_file_uploader/src/stream/stream_options.dart';
+import 'package:file_streamer/src/interface.dart';
+import 'package:file_streamer/src/js_interop_types.dart';
+import 'package:file_streamer/src/picker/picked_file.dart';
+import 'package:file_streamer/src/picker/picker_exceptions.dart';
+import 'package:file_streamer/src/picker/picker_options.dart';
+import 'package:file_streamer/src/picker/picker_result.dart';
+import 'package:file_streamer/src/stream/stream_exceptions.dart';
+import 'package:file_streamer/src/stream/stream_options.dart';
 
-base class StreamedFileUploaderWeb
-    extends StreamedFileUploaderPlatform<FileSystemFileHandle> {
+base class FileStreamerWeb
+    extends FileStreamerPlatform<FileSystemFileHandle> {
   static void registerWith(dynamic registrar) {
-    StreamedFileUploaderPlatform.instance = StreamedFileUploaderWeb();
+    FileStreamerPlatform.instance = FileStreamerWeb();
   }
 
   @override

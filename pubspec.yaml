@@ -1,11 +1,11 @@
-name: streamed_file_uploader
-description: A high-performance, memory-efficient file streamer.
+name: file_streamer
+description: A zero-retention, stream-first file access library for Dart & Flutter.
 
 version: 0.1.0
 
-repository: https://github.com/minhqdao/streamed_file_uploader
-homepage: https://github.com/minhqdao/streamed_file_uploader
-issue_tracker: https://github.com/minhqdao/streamed_file_uploader/issues
+repository: https://github.com/minhqdao/file_streamer
+homepage: https://github.com/minhqdao/file_streamer
+issue_tracker: https://github.com/minhqdao/file_streamer/issues
 
 topics:
   - read

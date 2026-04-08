@@ -1,5 +1,5 @@
+import 'package:file_streamer/file_streamer.dart';
 import 'package:flutter/material.dart';
-import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 
 void main() => runApp(const ExampleApp());
 
@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
         filters: [_selectedFilter],
       );
 
-      final result = await StreamedFileUploader.pickFiles(options);
+      final result = await FileStreamer.pickFiles(options);
       if (result.isEmpty) {
         setState(() => _isPicking = false);
         return;
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _startStreaming(UploadTask task) async {
-    final stream = StreamedFileUploader.openReadStream(
+    final stream = FileStreamer.openReadStream(
       task.file,
       options: ReadStreamOptions(chunkSize: (_chunkSizeKb * 1024).toInt()),
     );

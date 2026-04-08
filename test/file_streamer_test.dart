@@ -4,27 +4,26 @@ library;
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:file_streamer/file_streamer.dart';
+import 'package:file_streamer/src/interface.dart';
+import 'package:file_streamer/src/io_impl.dart';
 import 'package:path/path.dart' as p;
-import 'package:streamed_file_uploader/src/interface.dart';
-import 'package:streamed_file_uploader/src/io_impl.dart';
-import 'package:streamed_file_uploader/streamed_file_uploader.dart';
 import 'package:test/test.dart';
 
 void main() {
   setUpAll(() {
-    StreamedFileUploaderPlatform.instance = StreamedFileUploaderIO();
+    FileStreamerPlatform.instance = FileStreamerIO();
   });
 
-  group('StreamedFileUploader (Native IO)', () {
+  group('FileStreamer (Native IO)', () {
     test('isSupported should be true on VM', () {
-      expect(StreamedFileUploader.isSupported, isTrue);
+      expect(FileStreamer.isSupported, isTrue);
     });
 
     late Directory tempDir;
 
     setUp(() {
-      tempDir =
-          Directory.systemTemp.createTempSync('streamed_file_uploader_test_');
+      tempDir = Directory.systemTemp.createTempSync('file_streamer_test_');
     });
 
     tearDown(() {
@@ -33,12 +32,12 @@ void main() {
 
     test('should stream file contents correctly', () async {
       final filePath = p.join(tempDir.path, 'test_file.txt');
-      final content = 'Hello, Streamed File Uploader! ' * 100;
+      final content = 'Hello, File Streamer! ' * 100;
       final expectedBytes = Uint8List.fromList(content.codeUnits);
       File(filePath).writeAsBytesSync(expectedBytes);
 
       final pickedFile = pickedFileFromPath(filePath);
-      final stream = StreamedFileUploader.openReadStream(pickedFile);
+      final stream = FileStreamer.openReadStream(pickedFile);
 
       final List<int> streamedBytes = [];
       await for (final chunk in stream) {
@@ -60,7 +59,7 @@ void main() {
       File(filePath).writeAsBytesSync(originalData);
 
       final pickedFile = pickedFileFromPath(filePath);
-      final stream = StreamedFileUploader.openReadStream(
+      final stream = FileStreamer.openReadStream(
         pickedFile,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );
@@ -79,7 +78,7 @@ void main() {
     test('should throw ReadStreamException for non-existent files', () {
       final nonExistentPath = p.join(tempDir.path, 'does_not_exist.txt');
       final pickedFile = pickedFileFromPath(nonExistentPath);
-      final stream = StreamedFileUploader.openReadStream(pickedFile);
+      final stream = FileStreamer.openReadStream(pickedFile);
 
       expect(
         () => stream.drain(),

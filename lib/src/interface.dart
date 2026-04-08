@@ -1,24 +1,24 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:streamed_file_uploader/src/picker/picked_file.dart';
-import 'package:streamed_file_uploader/src/picker/picker_options.dart';
-import 'package:streamed_file_uploader/src/picker/picker_result.dart';
-import 'package:streamed_file_uploader/src/platform/platform_stub.dart'
-    if (dart.library.js_interop) 'package:streamed_file_uploader/src/platform/platform_web.dart'
-    if (dart.library.io) 'package:streamed_file_uploader/src/platform/platform_io.dart';
-import 'package:streamed_file_uploader/src/stream/stream_options.dart';
+import 'package:file_streamer/src/picker/picked_file.dart';
+import 'package:file_streamer/src/picker/picker_options.dart';
+import 'package:file_streamer/src/picker/picker_result.dart';
+import 'package:file_streamer/src/platform/platform_stub.dart'
+    if (dart.library.js_interop) 'package:file_streamer/src/platform/platform_web.dart'
+    if (dart.library.io) 'package:file_streamer/src/platform/platform_io.dart';
+import 'package:file_streamer/src/stream/stream_options.dart';
 
 /// Base class for platform implementations.
-abstract base class StreamedFileUploaderPlatform<H extends Object> {
-  static StreamedFileUploaderPlatform<Object>? _instance;
+abstract base class FileStreamerPlatform<H extends Object> {
+  static FileStreamerPlatform<Object>? _instance;
 
-  static StreamedFileUploaderPlatform<Object> get instance {
+  static FileStreamerPlatform<Object> get instance {
     _instance ??= createPlatform();
     return _instance!;
   }
 
-  static set instance(StreamedFileUploaderPlatform<Object> impl) {
+  static set instance(FileStreamerPlatform<Object> impl) {
     _instance = impl;
   }
 
