@@ -69,6 +69,43 @@ extension type ReadableStreamReadResult._(JSObject _) implements JSObject {
 }
 
 // ---------------------------------------------------------------------------
+// HTML — minimal fallback support
+// ---------------------------------------------------------------------------
+
+@JS('document')
+external _JsDocument get jsDocument;
+
+extension type _JsDocument._(JSObject _) implements JSObject {
+  @JS('createElement')
+  external HTMLInputElement _createElement(String tagName);
+
+  HTMLInputElement createInputElement() => _createElement('input');
+}
+
+extension type HTMLInputElement._(JSObject _) implements JSObject {
+  external String get type;
+  external set type(String value);
+
+  external bool get multiple;
+  external set multiple(bool value);
+
+  external String get accept;
+  external set accept(String value);
+
+  external void click();
+  external FileList? get files;
+  external void remove();
+  external void addEventListener(String type, JSFunction listener);
+  external void removeEventListener(String type, JSFunction listener);
+}
+
+extension type FileList._(JSObject _) implements JSObject {
+  external int get length;
+  @JS('item')
+  external WebFile? item(int index);
+}
+
+// ---------------------------------------------------------------------------
 // window — typed access to the two globals we need
 // ---------------------------------------------------------------------------
 
@@ -76,7 +113,7 @@ extension type ReadableStreamReadResult._(JSObject _) implements JSObject {
 /// Using `@JS('window')` on a getter is the correct dart:js_interop pattern
 /// for accessing a named global object.
 @JS('window')
-external _JsWindow get _jsWindow;
+external _JsWindow get jsWindow;
 
 extension type _JsWindow._(JSObject _) implements JSObject {
   /// Reads an arbitrary property by name — used for feature detection.
@@ -97,7 +134,7 @@ extension type _JsWindow._(JSObject _) implements JSObject {
 /// an inline JS body (which is a `package:js`-only pattern and does not
 /// compile under dart2wasm).
 bool get isFileSystemAccessSupported {
-  final prop = _jsWindow['showOpenFilePicker'];
+  final prop = jsWindow['showOpenFilePicker'];
   if (prop == null) return false;
   // `typeofEquals` is the Wasm-safe way to call JS `typeof`.
   return prop.typeofEquals('function');
@@ -113,7 +150,7 @@ bool get isFileSystemAccessSupported {
 JSPromise<JSArray<FileSystemFileHandle>> showOpenFilePicker(
   JSObject options,
 ) =>
-    _jsWindow.showOpenFilePicker(options);
+    jsWindow.showOpenFilePicker(options);
 
 // ---------------------------------------------------------------------------
 // Options object builders

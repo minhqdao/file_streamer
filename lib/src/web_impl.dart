@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:file_streamer/src/interface.dart';
@@ -12,22 +13,28 @@ import 'package:file_streamer/src/stream/stream_exceptions.dart';
 import 'package:file_streamer/src/stream/stream_options.dart';
 import 'package:mime/mime.dart';
 
-base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
+base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   static void registerWith(dynamic registrar) {
     FileStreamerPlatform.instance = FileStreamerWeb();
   }
 
   @override
-  bool get isSupported => isFileSystemAccessSupported;
+  bool get isSupported => true; // Web always supported (via fallback)
 
   @override
-  Future<FilePickerResult<FileSystemFileHandle>> pickFiles(
+  Future<FilePickerResult<Object>> pickFiles(
+    PickerOptions options,
+  ) {
+    if (isFileSystemAccessSupported) {
+      return _pickFilesWithSystemAccess(options);
+    } else {
+      return _pickFilesWithInputFallback(options);
+    }
+  }
+
+  Future<FilePickerResult<FileSystemFileHandle>> _pickFilesWithSystemAccess(
     PickerOptions options,
   ) async {
-    if (!isSupported) {
-      throw UnsupportedError('window.showOpenFilePicker is not available.');
-    }
-
     final jsOptions = buildPickerOptions(
       multiple: options.allowMultiple,
       types: _buildAcceptTypes(options.filters),
@@ -71,20 +78,77 @@ base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
     return FilePickerResult(files: pickedFiles);
   }
 
+  Future<FilePickerResult<WebFile>> _pickFilesWithInputFallback(
+    PickerOptions options,
+  ) {
+    final input = jsDocument.createInputElement();
+    input.type = 'file';
+    input.multiple = options.allowMultiple;
+    input.accept = _buildAcceptString(options.filters);
+
+    final completer = Completer<FilePickerResult<WebFile>>();
+
+    late JSFunction changeListener;
+    changeListener = (JSAny? _) {
+      final files = input.files;
+      if (files == null || files.length == 0) {
+        if (!completer.isCompleted) {
+          completer.complete(const FilePickerResult(files: []));
+        }
+      } else {
+        final pickedFiles = <PickedFile<WebFile>>[];
+        for (var i = 0; i < files.length; i++) {
+          final file = files.item(i);
+          if (file == null) continue;
+          pickedFiles.add(PickedFile(
+            name: file.name,
+            size: file.size,
+            mimeType: file.type,
+            lastModified: DateTime.fromMillisecondsSinceEpoch(
+              file.lastModified.toInt(),
+            ),
+            handle: file,
+          ));
+        }
+        if (!completer.isCompleted) {
+          completer.complete(FilePickerResult(files: pickedFiles));
+        }
+      }
+      input.removeEventListener('change', changeListener);
+      input.remove();
+    }.toJS;
+
+    input.addEventListener('change', changeListener);
+
+    input.click();
+
+    return completer.future;
+  }
+
   @override
   Stream<Uint8List> openReadStream(
-    PickedFile<FileSystemFileHandle> file, {
+    PickedFile<Object> file, {
     ReadStreamOptions options = const ReadStreamOptions(),
   }) {
     late StreamController<Uint8List> controller;
     controller = StreamController<Uint8List>(
       onListen: () async {
         WebFile jsFile;
-        try {
-          jsFile = await file.handle.getFile().toDart;
-        } on Object catch (e) {
-          controller
-              .addError(ReadStreamException('Failed to open file', cause: e));
+        final handle = file.handle as JSObject;
+        if (handle.hasProperty('getFile'.toJS).toDart) {
+          try {
+            jsFile = await (handle as FileSystemFileHandle).getFile().toDart;
+          } on Object catch (e) {
+            controller
+                .addError(ReadStreamException('Failed to open file', cause: e));
+            await controller.close();
+            return;
+          }
+        } else if (handle.hasProperty('stream'.toJS).toDart) {
+          jsFile = handle as WebFile;
+        } else {
+          controller.addError(
+              ReadStreamException('Unknown handle type: ${handle.runtimeType}'));
           await controller.close();
           return;
         }
@@ -195,5 +259,21 @@ base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
       }
     }
     return types.toJS;
+  }
+
+  String _buildAcceptString(List<FileTypeFilter> filters) {
+    if (filters.isEmpty || filters.contains(FileTypeFilter.any)) {
+      return '';
+    }
+    final combined = <String>{};
+    for (final filter in filters) {
+      for (final mime in filter.mimeTypes) {
+        combined.add(mime);
+      }
+      for (final ext in filter.extensions) {
+        combined.add(ext.startsWith('.') ? ext : '.$ext');
+      }
+    }
+    return combined.join(',');
   }
 }
