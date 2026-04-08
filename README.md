@@ -73,3 +73,18 @@ Add the following to `macos/Runner/DebugProfile.entitlements` and `macos/Runner/
 ```xml
 <key>com.apple.security.files.user-selected.read-only</key>
 <true/>
+```
+
+## Tests
+
+Run `vm`-annotated tests with:
+
+```bash
+dart test
+````
+
+`Browser` tests are ran with:
+
+```bash
+dart test -p chrome
+```

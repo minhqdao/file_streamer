@@ -18,7 +18,10 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   }
 
   /// Internal getter reflecting File System Access API availability.
-  bool get supportsSystemAccess => isFileSystemAccessSupported;
+  bool get supportsSystemAccess =>
+      _supportsSystemAccess ?? isFileSystemAccessSupported;
+  set supportsSystemAccess(bool? value) => _supportsSystemAccess = value;
+  bool? _supportsSystemAccess;
 
   @override
   bool get isSupported => true; // Web always supported (via fallback)
@@ -87,6 +90,8 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     input.type = 'file';
     input.multiple = options.allowMultiple;
     input.accept = _buildAcceptString(options.filters);
+    input.style.display = 'none';
+    jsDocument.body.appendChild(input);
 
     final completer = Completer<FilePickerResult<WebFile>>();
 

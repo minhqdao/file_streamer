@@ -80,6 +80,24 @@ extension type _JsDocument._(JSObject _) implements JSObject {
   external HTMLInputElement _createElement(String tagName);
 
   HTMLInputElement createInputElement() => _createElement('input');
+
+  external HTMLBodyElement get body;
+
+  @JS('querySelectorAll')
+  external NodeList _querySelectorAll(String selector);
+
+  NodeList querySelectorAll(String selector) => _querySelectorAll(selector);
+}
+
+extension type HTMLBodyElement._(JSObject _) implements JSObject {
+  external void appendChild(JSObject child);
+}
+
+extension type NodeList._(JSObject _) implements JSObject {
+  external int get length;
+
+  @JS('item')
+  external JSObject? item(int index);
 }
 
 extension type HTMLInputElement._(JSObject _) implements JSObject {
@@ -94,15 +112,42 @@ extension type HTMLInputElement._(JSObject _) implements JSObject {
 
   external void click();
   external FileList? get files;
+  external set files(FileList? value);
+
+  external CSSStyleDeclaration get style;
+
   external void remove();
   external void addEventListener(String type, JSFunction listener);
   external void removeEventListener(String type, JSFunction listener);
+
+  @JS('dispatchEvent')
+  external bool _dispatchEvent(JSObject event);
+
+  bool dispatchChangeEvent() {
+    return _dispatchEvent(_createEvent('change'));
+  }
 }
+
+extension type CSSStyleDeclaration._(JSObject _) implements JSObject {
+  external String get display;
+  external set display(String value);
+}
+
+@JS('Event')
+extension type _JsEvent._(JSObject _) implements JSObject {
+  external factory _JsEvent(String type);
+}
+
+_JsEvent _createEvent(String type) => _JsEvent(type);
 
 extension type FileList._(JSObject _) implements JSObject {
   external int get length;
   @JS('item')
   external WebFile? item(int index);
+
+  /// Helper to cast a JSArray to FileList for testing.
+  /// In JS, FileList is an array-like object.
+  static FileList fromArray(JSArray<WebFile> array) => array as FileList;
 }
 
 // ---------------------------------------------------------------------------
