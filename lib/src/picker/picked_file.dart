@@ -5,6 +5,7 @@
 ///  - `PickedFile<FileSystemFileHandle>` on Web
 ///  - `PickedFile<String>` (absolute path) on native
 final class PickedFile<H extends Object> {
+  /// Creates a metadata object for a selected file.
   const PickedFile({
     required this.name,
     required this.size,

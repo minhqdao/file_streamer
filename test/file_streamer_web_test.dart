@@ -20,8 +20,7 @@ void main() {
       final bytes = Uint8List.fromList([1, 2, 3, 4, 5]).toJS;
       final blob = web.Blob(<JSUint8Array>[bytes].toJS);
 
-      final stream =
-          FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.expand((bin) => bin).toList();
       expect(result, equals([1, 2, 3, 4, 5]));
@@ -37,8 +36,7 @@ void main() {
 
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
-      final stream =
-          FileStreamerPlatform.instance.openReadStreamFromBlob(
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );
@@ -57,8 +55,7 @@ void main() {
 
     test('handles empty blobs', () async {
       final blob = web.Blob(<JSUint8Array>[].toJS);
-      final stream =
-          FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(blob);
 
       final result = await stream.toList();
       expect(result, isEmpty);
@@ -70,8 +67,7 @@ void main() {
       final bytes = Uint8List(totalSize);
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);
 
-      final stream =
-          FileStreamerPlatform.instance.openReadStreamFromBlob(
+      final stream = FileStreamerPlatform.instance.openReadStreamFromBlob(
         blob,
         options: const ReadStreamOptions(chunkSize: chunkSize),
       );

@@ -11,8 +11,7 @@ import 'package:file_streamer/src/picker/picker_result.dart';
 import 'package:file_streamer/src/stream/stream_exceptions.dart';
 import 'package:file_streamer/src/stream/stream_options.dart';
 
-base class FileStreamerWeb
-    extends FileStreamerPlatform<FileSystemFileHandle> {
+base class FileStreamerWeb extends FileStreamerPlatform<FileSystemFileHandle> {
   static void registerWith(dynamic registrar) {
     FileStreamerPlatform.instance = FileStreamerWeb();
   }
