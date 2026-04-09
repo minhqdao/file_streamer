@@ -5,45 +5,71 @@ A high-performance, constant-memory file streamer for Flutter and Dart. It avoid
 ## Usage
 
 ```dart
+import 'dart:typed_data';
 import 'package:file_streamer/file_streamer.dart';
+import 'package:http/http.dart' as http;
 
 Future<void> main() async {
-  // 1. Pick one or more images
+  // 1. Pick files
   final result = await FileStreamer.pickFiles(
     const PickerOptions(
-      allowMultiple: false,
+      allowMultiple: true,
       filters: [FileTypeFilter.images],
     ),
   );
 
   if (result.isEmpty) return;
 
-  final file = result.files.first;
-  print('Selected: ${file.name} (${file.size} bytes)');
+  // 2 + 3. Stream and upload each file
+  for (final file in result.files) {
+    print('Uploading: ${file.name} (${file.size} bytes)');
 
-  // 2. Open a read stream
-  final stream = FileStreamer.openReadStream(
-    file,
-    options: const ReadStreamOptions(chunkSize: 1024 * 512), // 512 KB chunks
-  );
+    final stream = FileStreamer.openReadStream(
+      file,
+      options: const ReadStreamOptions(chunkSize: 512 * 1024), // 512 KB
+    );
 
-  // 3. Pipe to your destination (e.g., an HTTP client or AWS S3)
-  int bytesRead = 0;
-  await for (final chunk in stream) {
-    bytesRead += chunk.length;
-    final progress = (bytesRead / file.size * 100).toStringAsFixed(1);
-    print('Progress: $progress%');
+    final request = http.StreamedRequest(
+      'POST',
+      Uri.parse('https://httpbin.org/post'),
+    );
 
-    // await myHttpClient.post(url, body: chunk);
+    request.headers['Content-Type'] = 'application/octet-stream';
+    request.contentLength = file.size;
+
+    int uploaded = 0;
+
+    final progressStream = stream.map((Uint8List chunk) {
+      uploaded += chunk.length;
+      final progress = file.size > 0
+          ? (uploaded / file.size * 100).toStringAsFixed(1)
+          : '0.0';
+
+      print('${file.name}: $progress%');
+      return chunk;
+    });
+
+    final responseFuture = request.send();
+
+    await request.sink.addStream(progressStream);
+    await request.sink.close();
+
+    final response = await responseFuture;
+    await response.stream.drain();
+
+    print('${file.name}: done (${response.statusCode})\n');
   }
 }
 ```
 
+Find complete [flutter](example/flutter/) and [dart](example/dart/) examples in the [example](example) folder.
+
 ## Features
 - **Constant-RAM**: Handles 2GB+ files with the same memory footprint as a 10KB file.
-- **True Streaming**: Pipes data directly from the OS buffer to a Dart `Stream<Uint8List>`.
-- **Wasm-Native**: Built using `dart:js_interop` and `package:web` (No legacy `dart:html`).
+- **True Streaming**: Pipes data straight from the OS buffer to a Dart `Stream<Uint8List>`.
+- **Upload-Ready**: Directly feed network requests with minimal intermediate RAM overhead.
 - **Modern Standards**: Leverages the **File System Access API** with fallbacks for older systems.
+- **Wasm-Native**: Built using `dart:js_interop` and `package:web` (No legacy `dart:html`).
 - **Pure Dart**: 100% UI-agnostic. Works on Web, Mobile, Desktop, and the CLI.
 
 ## Installation
@@ -74,6 +100,13 @@ Add the following to `macos/Runner/DebugProfile.entitlements` and `macos/Runner/
 <key>com.apple.security.files.user-selected.read-only</key>
 <true/>
 ```
+
+If you want to upload files, you also need to enable outgoing connections in your App Sandbox:
+
+1. Open `macos/Runner.xcworkspace` in Xcode.
+2. Select the **Runner** project in the project navigator.
+3. Go to the **Signing & Capabilities** tab.
+4. Under **App Sandbox** -> **Network**, check **Outgoing Connections (Client)**.
 
 ## Tests
 
