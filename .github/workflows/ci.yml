@@ -11,6 +11,9 @@ jobs:
               run: sed -i '/file_picker:/d' pubspec.yaml
             - run: dart pub get --no-example
             - run: |
+                  dart --version
+                  dart format --version
+            - run: |
                   dart format .
                   git diff example/dart/bin/main.dart
 
