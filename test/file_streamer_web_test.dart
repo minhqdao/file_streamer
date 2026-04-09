@@ -15,6 +15,10 @@ void main() {
     expect(FileStreamer.isSupported, isA<bool>());
   });
 
+  test('fromPath should throw UnsupportedError on Web', () {
+    expect(() => FileStreamer.fromPath('/some/path'), throwsUnsupportedError);
+  });
+
   group('Web Stream: openReadStreamFromBlob', () {
     test('converts web.Blob to Dart Stream', () async {
       final bytes = Uint8List.fromList([1, 2, 3, 4, 5]).toJS;

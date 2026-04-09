@@ -22,6 +22,9 @@ base class FileStreamerIO extends FileStreamerPlatform<String> {
   bool get isSupported => true;
 
   @override
+  PickedFile<String> fromPath(String path) => pickedFileFromPath(path);
+
+  @override
   Future<FilePickerResult<String>> pickFiles(PickerOptions options) {
     return pickFilesNative(options);
   }

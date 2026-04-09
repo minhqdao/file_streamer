@@ -27,6 +27,13 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   bool get isSupported => true; // Web always supported (via fallback)
 
   @override
+  PickedFile<Object> fromPath(String path) {
+    throw UnsupportedError(
+        'FileStreamer.fromPath() is not supported on Web due to browser security restrictions. '
+        'Use FileStreamer.pickFiles() to allow the user to select a file.');
+  }
+
+  @override
   Future<FilePickerResult<Object>> pickFiles(
     PickerOptions options,
   ) {

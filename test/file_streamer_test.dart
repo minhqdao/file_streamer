@@ -29,6 +29,59 @@ void main() {
     });
   });
 
+  group('FileStreamer.fromPath', () {
+    late Directory tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('file_streamer_path_test_');
+    });
+
+    tearDown(() {
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('should stream from local path', () async {
+      final filePath = p.join(tempDir.path, 'path_test.txt');
+      const content = 'Path streaming test content';
+      File(filePath).writeAsStringSync(content);
+
+      final streamer = FileStreamer.fromPath(filePath);
+      expect(streamer.file.name, equals('path_test.txt'));
+
+      final chunks = await streamer.openRead().toList();
+      final streamedContent = String.fromCharCodes(chunks.expand((c) => c));
+      expect(streamedContent, equals(content));
+    });
+
+    test('StreamableFile.openRead should respect ReadStreamOptions', () async {
+      final filePath = p.join(tempDir.path, 'options_test.txt');
+      final content = Uint8List.fromList(List.generate(100, (i) => i));
+      File(filePath).writeAsBytesSync(content);
+
+      final streamer = FileStreamer.fromPath(filePath);
+      final stream = streamer.openRead(
+        options: const ReadStreamOptions(chunkSize: 10),
+      );
+
+      final chunks = await stream.toList();
+      expect(chunks.length, equals(10));
+      expect(Uint8List.fromList(chunks.expand((c) => c).toList()),
+          equals(content));
+    });
+
+    test('should throw error for non-existent path', () {
+      final nonExistent = p.join(tempDir.path, 'missing.txt');
+      final streamer = FileStreamer.fromPath(nonExistent);
+
+      // Note: fromPath itself doesn't throw if file is missing,
+      // but openRead should when the stream is listened to.
+      expect(
+        () => streamer.openRead().drain(),
+        throwsA(isA<ReadStreamException>()),
+      );
+    });
+  });
+
   group('FileStreamer (Native IO)', () {
     test('isSupported should be true on VM', () {
       expect(FileStreamer.isSupported, isTrue);

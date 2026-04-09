@@ -22,6 +22,9 @@ abstract base class FileStreamerPlatform<H extends Object> {
     _instance = impl;
   }
 
+  /// Creates a [PickedFile] from a local file path.
+  PickedFile<H> fromPath(String path);
+
   Future<FilePickerResult<H>> pickFiles(PickerOptions options);
 
   Stream<Uint8List> openReadStream(

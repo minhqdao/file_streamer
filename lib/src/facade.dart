@@ -25,6 +25,16 @@ abstract final class FileStreamer {
   ]) =>
       FileStreamerPlatform.instance.pickFiles(options);
 
+  /// Creates a [StreamableFile] from a local file path.
+  ///
+  /// Only supported on native platforms (CLI, Mobile, Desktop).
+  /// Throws [UnsupportedError] on Web, use [pickFiles] instead to get a
+  /// [PickedFile] from the user.
+  static StreamableFile fromPath(String path) {
+    final pickedFile = FileStreamerPlatform.instance.fromPath(path);
+    return StreamableFile(pickedFile);
+  }
+
   /// Streams the bytes of [file] as [Uint8List] chunks.
   ///
   /// This operation does not load the whole file into memory. Instead, it reads
@@ -40,4 +50,19 @@ abstract final class FileStreamer {
         file,
         options: options,
       );
+}
+
+/// A handle to a file that can be read as a stream.
+final class StreamableFile {
+  /// The underlying metadata for this file.
+  final PickedFile<Object> file;
+
+  /// Creates a [StreamableFile] wrapping a [PickedFile].
+  const StreamableFile(this.file);
+
+  /// Opens a stream to read the file's contents in chunks.
+  Stream<Uint8List> openRead({
+    ReadStreamOptions options = const ReadStreamOptions(),
+  }) =>
+      FileStreamer.openReadStream(file, options: options);
 }

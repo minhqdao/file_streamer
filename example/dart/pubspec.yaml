@@ -1,0 +1,13 @@
+name: file_streamer_dart_example
+publish_to: "none"
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  file_streamer:
+    path: ../..
+  http: ^1.6.0
+
+dev_dependencies:
+  lint: ^2.8.0
