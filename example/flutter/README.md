@@ -1,6 +1,6 @@
-# File Streamer Example
+# File Streamer Flutter Example
 
-This example demonstrates how to use the `file_streamer` package to pick and upload files using constant-memory streaming.
+This example demonstrates how to use the `file_streamer` package to pick and upload files using constant-memory streaming in Flutter.
 
 ## Platform Setup
 
