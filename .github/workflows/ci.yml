@@ -12,7 +12,7 @@ jobs:
             - run: dart pub get --no-example
             - run: |
                   dart format .
-                  git diff example/main.dart
+                  git diff example/dart/bin/main.dart
 
     analyze:
         runs-on: ubuntu-latest
