@@ -169,6 +169,9 @@ extension type _JsWindow._(JSObject _) implements JSObject {
   );
 }
 
+// Cache the result in a private variable
+bool? _isFsaSupported;
+
 // ---------------------------------------------------------------------------
 // Feature detection
 // ---------------------------------------------------------------------------
@@ -179,10 +182,27 @@ extension type _JsWindow._(JSObject _) implements JSObject {
 /// an inline JS body (which is a `package:js`-only pattern and does not
 /// compile under dart2wasm).
 bool get isFileSystemAccessSupported {
-  final prop = jsWindow['showOpenFilePicker'];
-  if (prop == null) return false;
-  // `typeofEquals` is the Wasm-safe way to call JS `typeof`.
-  return prop.typeofEquals('function');
+  return _isFsaSupported ??= () {
+    final picker = jsWindow['showOpenFilePicker'];
+    // Check if the property exists and is a function
+    if (picker == null || !picker.typeofEquals('function')) return false;
+
+    final handleConstructor = jsWindow['FileSystemFileHandle'];
+
+    // 1. Use .isA<JSObject> instead of 'is JSObject'
+    if (handleConstructor != null && handleConstructor.isA<JSObject>()) {
+      final prototype =
+          (handleConstructor as JSObject).getProperty('prototype'.toJS);
+
+      // 2. Again, use .isA<JSObject>()
+      if (prototype != null && prototype.isA<JSObject>()) {
+        // 3. Convert JSBoolean to Dart bool using .toDart
+        return (prototype as JSObject).hasProperty('getFile'.toJS).toDart;
+      }
+    }
+
+    return false;
+  }();
 }
 
 // ---------------------------------------------------------------------------

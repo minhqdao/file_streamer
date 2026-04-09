@@ -12,6 +12,19 @@ import 'package:file_streamer/src/stream/stream_exceptions.dart';
 import 'package:file_streamer/src/stream/stream_options.dart';
 import 'package:mime/mime.dart';
 
+/// Internal wrapper to distinguish between handle types on Web.
+sealed class _WebHandle {}
+
+class _SystemHandle extends _WebHandle {
+  final FileSystemFileHandle handle;
+  _SystemHandle(this.handle);
+}
+
+class _FallbackHandle extends _WebHandle {
+  final WebFile file;
+  _FallbackHandle(this.file);
+}
+
 base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   static void registerWith(dynamic registrar) {
     FileStreamerPlatform.instance = FileStreamerWeb();
@@ -44,7 +57,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     }
   }
 
-  Future<FilePickerResult<FileSystemFileHandle>> _pickFilesWithSystemAccess(
+  Future<FilePickerResult<Object>> _pickFilesWithSystemAccess(
     PickerOptions options,
   ) async {
     final jsOptions = buildPickerOptions(
@@ -65,7 +78,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
       throw FilePickerException('showOpenFilePicker failed', cause: e);
     }
 
-    final pickedFiles = <PickedFile<FileSystemFileHandle>>[];
+    final pickedFiles = <PickedFile<Object>>[];
     final length = handles.length;
     for (var i = 0; i < length; i++) {
       final handle = handles.toDart[i];
@@ -83,14 +96,14 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         lastModified: DateTime.fromMillisecondsSinceEpoch(
           jsFile.lastModified.toInt(),
         ),
-        handle: handle,
+        handle: _SystemHandle(handle),
       ));
     }
 
     return FilePickerResult(files: pickedFiles);
   }
 
-  Future<FilePickerResult<WebFile>> _pickFilesWithInputFallback(
+  Future<FilePickerResult<Object>> _pickFilesWithInputFallback(
     PickerOptions options,
   ) {
     final input = jsDocument.createInputElement();
@@ -100,7 +113,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     input.style.display = 'none';
     jsDocument.body.appendChild(input);
 
-    final completer = Completer<FilePickerResult<WebFile>>();
+    final completer = Completer<FilePickerResult<Object>>();
 
     // Timeout fallback for cancellation (~10 seconds)
     final timer = Timer(const Duration(seconds: 10), () {
@@ -124,7 +137,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
       if (files == null || files.length == 0) {
         completer.complete(const FilePickerResult(files: []));
       } else {
-        final pickedFiles = <PickedFile<WebFile>>[];
+        final pickedFiles = <PickedFile<Object>>[];
         for (var i = 0; i < files.length; i++) {
           final file = files.item(i);
           if (file == null) continue;
@@ -135,7 +148,7 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
             lastModified: DateTime.fromMillisecondsSinceEpoch(
               file.lastModified.toInt(),
             ),
-            handle: file,
+            handle: _FallbackHandle(file),
           ));
         }
         completer.complete(FilePickerResult(files: pickedFiles));
@@ -159,20 +172,17 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         WebFile jsFile;
         final handle = file.handle;
 
-        // Use direct type checks as requested.
-        // ignore: invalid_runtime_check_with_js_interop_types
-        if (handle is FileSystemFileHandle) {
+        if (handle is _SystemHandle) {
           try {
-            jsFile = await handle.getFile().toDart;
+            jsFile = await handle.handle.getFile().toDart;
           } on Object catch (e) {
             controller
                 .addError(ReadStreamException('Failed to open file', cause: e));
             await controller.close();
             return;
           }
-          // ignore: invalid_runtime_check_with_js_interop_types
-        } else if (handle is WebFile) {
-          jsFile = handle;
+        } else if (handle is _FallbackHandle) {
+          jsFile = handle.file;
         } else {
           controller.addError(ReadStreamException(
               'Unknown handle type: ${handle.runtimeType}'));
