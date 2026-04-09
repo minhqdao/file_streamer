@@ -275,7 +275,7 @@ class BuildTaskTile extends StatelessWidget {
             '${(task.file.size / 1024).toStringAsFixed(2)} KB • ${task.file.mimeType}',
           ),
           if (task.error != null)
-            Text(
+            SelectableText(
               task.error!,
               style: const TextStyle(color: Colors.red, fontSize: 12),
             )
