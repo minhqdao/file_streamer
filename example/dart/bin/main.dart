@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_streamer/file_streamer.dart';
+import 'package:http/http.dart' as http;
 
 void main(List<String> args) async {
   if (args.isEmpty) {
@@ -7,25 +9,60 @@ void main(List<String> args) async {
     return;
   }
 
-  final filePath = args[0];
-  final file = File(filePath);
+  final path = args[0];
+  final file = File(path);
 
   if (!await file.exists()) {
     stdout.writeln('Error: File not found.');
     return;
   }
 
-  stdout.writeln('Streaming ${file.path} (${await file.length()} bytes)...');
+  final size = await file.length();
+  stdout.writeln('Uploading $path ($size bytes)...');
 
-  // Demonstrate the zero-memory stream
-  final streamer = FileStreamer.fromPath(file.path);
+  try {
+    final streamable = FileStreamer.fromPath(path);
+    final response = await _uploadFile(streamable);
+    await response.stream.drain();
 
-  int totalBytes = 0;
-  await for (final chunk in streamer.openRead()) {
-    totalBytes += chunk.length;
-    // Log progress without flooding the console
-    stdout.write('\r$totalBytes bytes streamed...');
+    stdout.writeln('\nUpload complete.');
+    stdout.writeln('Status: ${response.statusCode}');
+  } catch (e) {
+    stdout.writeln('\nUpload failed: $e');
   }
+}
 
-  stdout.writeln('\nStreaming complete.');
+Future<http.StreamedResponse> _uploadFile(StreamableFile streamable) async {
+  final file = streamable.file;
+
+  final request = http.StreamedRequest(
+    'POST',
+    Uri.parse('https://httpbin.org/post'),
+  );
+
+  request.headers['Content-Type'] = 'application/octet-stream';
+  request.contentLength = file.size;
+
+  int uploaded = 0;
+
+  final stream = streamable.openRead();
+
+  final progressStream = stream.map((Uint8List chunk) {
+    uploaded += chunk.length;
+
+    final progress = file.size > 0
+        ? (uploaded / file.size).clamp(0.0, 1.0)
+        : 0.0;
+
+    stdout.write('\rProgress: ${(progress * 100).toStringAsFixed(1)}%');
+
+    return chunk;
+  });
+
+  final responseFuture = request.send();
+
+  await request.sink.addStream(progressStream);
+  await request.sink.close();
+
+  return await responseFuture;
 }
