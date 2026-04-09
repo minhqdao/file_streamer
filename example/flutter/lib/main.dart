@@ -87,12 +87,18 @@ class _MyHomePageState extends State<MyHomePage> {
       request.contentLength = task.file.size;
 
       int uploaded = 0;
+      DateTime lastUpdate = DateTime.now();
+
       final progressStream = stream.map((chunk) {
         uploaded += chunk.length;
-        if (mounted) {
-          setState(() {
-            task.progress = uploaded / task.file.size;
-          });
+        final now = DateTime.now();
+        // Only update the UI every 50ms to save battery and CPU
+        if (now.difference(lastUpdate).inMilliseconds > 50 ||
+            uploaded == task.file.size) {
+          lastUpdate = now;
+          if (mounted) {
+            setState(() => task.progress = uploaded / task.file.size);
+          }
         }
         return chunk;
       });
@@ -273,7 +279,7 @@ class BuildTaskTile extends StatelessWidget {
               task.error!,
               style: const TextStyle(color: Colors.red, fontSize: 12),
             )
-          else if (task.isUploading || task.progress > 0)
+          else if (task.isUploading || task.progress > 0 || task.isDone)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: LinearProgressIndicator(value: task.progress),
