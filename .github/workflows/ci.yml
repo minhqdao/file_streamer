@@ -34,6 +34,16 @@ jobs:
             - run: dart pub get --no-example
             - run: dart test
 
+    test-cli:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: dart-lang/setup-dart@v1
+            - name: Remove Flutter deps to simulate a pure Dart environment
+              run: sed -i '/file_picker:/d' pubspec.yaml
+            - run: dart pub get --no-example
+            - run: dart test test/file_streamer_cli_test.dart
+
     test-chrome:
         runs-on: ubuntu-latest
         steps:
