@@ -56,8 +56,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _uploadAll() async {
     final pendingTasks = _tasks
-        .where((t) => !t.isDone && !t.isUploading)
-        .toList();
+        .where((task) => !task.isDone && !task.isUploading)
+        .toList(growable: false);
     if (pendingTasks.isEmpty) return;
 
     for (final task in pendingTasks) {
