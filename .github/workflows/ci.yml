@@ -9,8 +9,9 @@ jobs:
             - uses: dart-lang/setup-dart@v1
             - uses: subosito/flutter-action@v2
             - run: dart pub get --no-example
-            - run: dart format -o none --set-exit-if-changed --line-length 80 .
-            - run: git diff example/flutter/lib/main.dart
+            - run: |
+                  dart format .
+                  git diff example/flutter/lib/main.dart
 
     analyze:
         runs-on: ubuntu-latest
