@@ -7,7 +7,7 @@ environment:
 
 dependencies:
   file_streamer:
-    path: ..
+    path: ../..
   flutter:
     sdk: flutter
   http: ^1.6.0
