@@ -8,9 +8,9 @@ homepage: https://github.com/minhqdao/file_streamer
 issue_tracker: https://github.com/minhqdao/file_streamer/issues
 
 topics:
-  - read
-  - load
+  - picker
   - upload
+  - pick
   - stream
   - wasm
 
