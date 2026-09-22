@@ -1,6 +1,6 @@
 // lib/src/picker/platform/picker_ffi.dart
-import 'dart:io' as io;
 import 'package:file_picker/file_picker.dart' as fp;
+import 'package:file_streamer/src/picker/file_stats.dart';
 import 'package:file_streamer/src/picker/picked_file.dart';
 import 'package:file_streamer/src/picker/picker_exceptions.dart';
 import 'package:file_streamer/src/picker/picker_options.dart';
@@ -49,27 +49,17 @@ Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
       final path = platformFile.path;
       if (path == null) continue;
 
-      int? statSize;
-      var lastModified = DateTime.fromMillisecondsSinceEpoch(0);
-      try {
-        final stat = io.File(path).statSync();
-        statSize = stat.size;
-        lastModified = stat.modified;
-      } on Object {
-        // Keep epoch fallback when stat fails.
-      }
-
-      final size =
-          platformFile.lengthSync() ??
-          await platformFile.length() ??
-          statSize ??
-          0;
+      final resolved = await resolveNativeFileStat(
+        path,
+        syncLength: platformFile.lengthSync(),
+        readLength: platformFile.length,
+      );
       pickedFiles.add(
         PickedFile(
           name: platformFile.name,
-          size: size,
+          size: resolved.size,
           mimeType: lookupMimeType(path) ?? 'application/octet-stream',
-          lastModified: lastModified,
+          lastModified: resolved.lastModified,
           handle: path,
         ),
       );
