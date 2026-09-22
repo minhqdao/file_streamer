@@ -72,8 +72,7 @@ jobs:
             - uses: subosito/flutter-action@v2
             - run: dart pub get --no-example
             - run: dart pub global activate coverage
-            - name: Collect coverage without footprint tests
-              run: dart test --coverage=coverage --exclude-tags large-file
+            - run: dart test --coverage=coverage
             - name: Enforce minimum line coverage
               run: |
                 dart pub global run coverage:format_coverage --packages=.dart_tool/package_config.json --report-on=lib --lcov -o coverage/lcov.info -i coverage
