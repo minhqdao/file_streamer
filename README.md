@@ -83,7 +83,7 @@ dart pub add file_streamer
 in your project root or add:
 
 ```yaml
-file_streamer: ^0.1.0
+file_streamer: ^0.2.0
 ```
 
 to the dependencies section in your `pubspec.yaml`.
@@ -114,7 +114,7 @@ Run `vm`-annotated tests with:
 
 ```bash
 dart test
-````
+```
 
 `Browser` tests are ran with:
 
