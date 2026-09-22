@@ -101,6 +101,9 @@ void main() {
     test(
       'streams 100 MB in fixed chunks with bounded RSS',
       timeout: const Timeout(Duration(minutes: 3)),
+      // Excluded from coverage runs: instrumentation inflates RSS,
+      // which is exactly what this test measures.
+      tags: 'large-file',
       () async {
         final filePath = p.join(tempDir.path, 'big.bin');
         final file = File(filePath);
