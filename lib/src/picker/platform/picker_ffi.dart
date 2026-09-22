@@ -1,6 +1,7 @@
 // lib/src/picker/platform/picker_ffi.dart
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:file_streamer/src/picker/file_stats.dart';
+import 'package:file_streamer/src/picker/filter_mapping.dart';
 import 'package:file_streamer/src/picker/picked_file.dart';
 import 'package:file_streamer/src/picker/picker_exceptions.dart';
 import 'package:file_streamer/src/picker/picker_options.dart';
@@ -9,20 +10,16 @@ import 'package:mime/mime.dart';
 
 Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
   try {
-    final fp.FileType type;
-    List<String>? allowedExtensions;
-
-    if (options.filters.isEmpty ||
-        options.filters.any((f) => f == FileTypeFilter.any)) {
-      type = fp.FileType.any;
-    } else if (options.filters.every((f) => f == FileTypeFilter.images)) {
-      type = fp.FileType.image;
-    } else if (options.filters.every((f) => f == FileTypeFilter.videos)) {
-      type = fp.FileType.video;
-    } else {
-      type = fp.FileType.custom;
-      allowedExtensions = options.filters.expand((f) => f.extensions).toList();
-    }
+    final filter = resolvePickerFilter(options.filters);
+    final fp.FileType type = switch (filter.kind) {
+      PickerFileKind.any => fp.FileType.any,
+      PickerFileKind.image => fp.FileType.image,
+      PickerFileKind.video => fp.FileType.video,
+      PickerFileKind.custom => fp.FileType.custom,
+    };
+    final List<String>? allowedExtensions = filter.kind == PickerFileKind.custom
+        ? filter.extensions
+        : null;
 
     final List<fp.PlatformFile> platformFiles;
     if (options.allowMultiple) {
