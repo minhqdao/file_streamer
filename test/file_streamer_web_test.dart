@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:file_streamer/file_streamer.dart';
 import 'package:file_streamer/src/interface.dart';
+import 'package:file_streamer/src/web_impl.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 
@@ -129,6 +130,20 @@ void main() {
       expect(results.length, greaterThan(1));
 
       await subscription.cancel();
+    });
+  });
+
+  group('Web System Access (showOpenFilePicker)', () {
+    test('pick without user gesture fails loudly', () async {
+      final platform = FileStreamerWeb();
+      if (!platform.supportsSystemAccess) {
+        markTestSkipped('File System Access API unavailable');
+        return;
+      }
+      await expectLater(
+        platform.pickFiles(const PickerOptions()),
+        throwsA(isA<FilePickerException>()),
+      );
     });
   });
 }
