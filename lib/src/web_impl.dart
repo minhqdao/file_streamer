@@ -42,14 +42,15 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
   @override
   PickedFile<Object> fromPath(String path) {
     throw UnsupportedError(
-        'FileStreamer.fromPath() is not supported on Web due to browser security restrictions. '
-        'Use FileStreamer.pickFiles() to allow the user to select a file.');
+      'FileStreamer.fromPath() is not supported on Web '
+      'due to browser security restrictions. '
+      'Use FileStreamer.pickFiles() to allow the user '
+      'to select a file.',
+    );
   }
 
   @override
-  Future<FilePickerResult<Object>> pickFiles(
-    PickerOptions options,
-  ) {
+  Future<FilePickerResult<Object>> pickFiles(PickerOptions options) {
     if (supportsSystemAccess) {
       return _pickFilesWithSystemAccess(options);
     } else {
@@ -63,7 +64,8 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
     final jsOptions = buildPickerOptions(
       multiple: options.allowMultiple,
       types: _buildAcceptTypes(options.filters),
-      excludeAcceptAllOption: options.filters.isNotEmpty &&
+      excludeAcceptAllOption:
+          options.filters.isNotEmpty &&
           !options.filters.contains(FileTypeFilter.any),
     );
 
@@ -89,15 +91,17 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         throw FilePickerException('Failed to resolve handle to File', cause: e);
       }
 
-      pickedFiles.add(PickedFile(
-        name: jsFile.name,
-        size: jsFile.size,
-        mimeType: jsFile.type,
-        lastModified: DateTime.fromMillisecondsSinceEpoch(
-          jsFile.lastModified.toInt(),
+      pickedFiles.add(
+        PickedFile(
+          name: jsFile.name,
+          size: jsFile.size,
+          mimeType: jsFile.type,
+          lastModified: DateTime.fromMillisecondsSinceEpoch(
+            jsFile.lastModified.toInt(),
+          ),
+          handle: _SystemHandle(handle),
         ),
-        handle: _SystemHandle(handle),
-      ));
+      );
     }
 
     return FilePickerResult(files: pickedFiles);
@@ -141,15 +145,17 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         for (var i = 0; i < files.length; i++) {
           final file = files.item(i);
           if (file == null) continue;
-          pickedFiles.add(PickedFile(
-            name: file.name,
-            size: file.size,
-            mimeType: file.type,
-            lastModified: DateTime.fromMillisecondsSinceEpoch(
-              file.lastModified.toInt(),
+          pickedFiles.add(
+            PickedFile(
+              name: file.name,
+              size: file.size,
+              mimeType: file.type,
+              lastModified: DateTime.fromMillisecondsSinceEpoch(
+                file.lastModified.toInt(),
+              ),
+              handle: _FallbackHandle(file),
             ),
-            handle: _FallbackHandle(file),
-          ));
+          );
         }
         completer.complete(FilePickerResult(files: pickedFiles));
       }
@@ -176,16 +182,18 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
           try {
             jsFile = await handle.handle.getFile().toDart;
           } on Object catch (e) {
-            controller
-                .addError(ReadStreamException('Failed to open file', cause: e));
+            controller.addError(
+              ReadStreamException('Failed to open file', cause: e),
+            );
             await controller.close();
             return;
           }
         } else if (handle is _FallbackHandle) {
           jsFile = handle.file;
         } else {
-          controller.addError(ReadStreamException(
-              'Unknown handle type: ${handle.runtimeType}'));
+          controller.addError(
+            ReadStreamException('Unknown handle type: ${handle.runtimeType}'),
+          );
           await controller.close();
           return;
         }
@@ -224,8 +232,9 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         try {
           result = await reader.read().toDart;
         } on Object catch (e) {
-          controller
-              .addError(ReadStreamException('Error reading chunk', cause: e));
+          controller.addError(
+            ReadStreamException('Error reading chunk', cause: e),
+          );
           break;
         }
 
@@ -241,8 +250,10 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
         } else {
           var offset = 0;
           while (offset < dartChunk.lengthInBytes) {
-            final end =
-                (offset + options.chunkSize).clamp(0, dartChunk.lengthInBytes);
+            final end = (offset + options.chunkSize).clamp(
+              0,
+              dartChunk.lengthInBytes,
+            );
             controller.add(Uint8List.sublistView(dartChunk, offset, end));
             offset = end;
             if (controller.isPaused) await _waitForResume(controller);
@@ -270,8 +281,9 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
       if (filter.mimeTypes.isEmpty && filter.extensions.isEmpty) continue;
 
       final mimeToExts = <String, List<String>>{};
-      final extensions =
-          filter.extensions.map((e) => e.startsWith('.') ? e : '.$e').toList();
+      final extensions = filter.extensions
+          .map((e) => e.startsWith('.') ? e : '.$e')
+          .toList();
 
       for (final mime in filter.mimeTypes) {
         mimeToExts[mime] = extensions;
@@ -289,10 +301,12 @@ base class FileStreamerWeb extends FileStreamerPlatform<Object> {
       }
 
       if (mimeToExts.isNotEmpty) {
-        types.add(buildAcceptType(
-          description: filter.label,
-          accept: buildAcceptRecord(mimeToExts),
-        ));
+        types.add(
+          buildAcceptType(
+            description: filter.label,
+            accept: buildAcceptRecord(mimeToExts),
+          ),
+        );
       }
     }
     return types.toJS;

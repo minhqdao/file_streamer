@@ -15,6 +15,5 @@ final class StreamableFile {
   /// Opens a stream to read the file's contents in chunks.
   Stream<Uint8List> openRead({
     ReadStreamOptions options = const ReadStreamOptions(),
-  }) =>
-      FileStreamer.openReadStream(file, options: options);
+  }) => FileStreamer.openReadStream(file, options: options);
 }

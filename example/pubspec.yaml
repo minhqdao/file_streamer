@@ -8,3 +8,6 @@ dependencies:
   file_streamer:
     path: ..
   http: ^1.6.0
+
+dev_dependencies:
+  lint: ^2.13.0

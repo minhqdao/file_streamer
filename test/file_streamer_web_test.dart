@@ -59,7 +59,8 @@ void main() {
 
     test('handles data chunks larger than chunkSize', () async {
       // Browsers often emit chunks of varying sizes.
-      // We test that _pumpStreamFromBlob correctly re-chunks larger-than-chunkSize data.
+      // We test that _pumpStreamFromBlob correctly re-chunks
+      // larger-than-chunkSize data.
       const chunkSize = 100;
       final bytes = Uint8List(250); // 2.5 chunks
       final blob = web.Blob(<JSUint8Array>[bytes.toJS].toJS);

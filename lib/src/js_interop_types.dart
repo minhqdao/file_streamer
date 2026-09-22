@@ -51,7 +51,8 @@ extension type JsReadableStream._(JSObject _) implements JSObject {
 
 /// `ReadableStreamDefaultReader<Uint8Array>`.
 extension type ReadableStreamDefaultReader._(JSObject _) implements JSObject {
-  /// Returns a Promise resolving to `{ value: Uint8Array | undefined, done: boolean }`.
+  /// Returns a Promise resolving to
+  /// `{ value: Uint8Array | undefined, done: boolean }`.
   external JSPromise<ReadableStreamReadResult> read();
 
   /// Releases the reader's lock on the stream without cancelling it.
@@ -191,8 +192,9 @@ bool get isFileSystemAccessSupported {
 
     // 1. Use .isA<JSObject> instead of 'is JSObject'
     if (handleConstructor != null && handleConstructor.isA<JSObject>()) {
-      final prototype =
-          (handleConstructor as JSObject).getProperty('prototype'.toJS);
+      final prototype = (handleConstructor as JSObject).getProperty(
+        'prototype'.toJS,
+      );
 
       // 2. Again, use .isA<JSObject>()
       if (prototype != null && prototype.isA<JSObject>()) {
@@ -212,9 +214,7 @@ bool get isFileSystemAccessSupported {
 /// Calls `window.showOpenFilePicker(options)` and returns the JS Promise.
 ///
 /// [options] is built with [buildPickerOptions] below.
-JSPromise<JSArray<FileSystemFileHandle>> showOpenFilePicker(
-  JSObject options,
-) =>
+JSPromise<JSArray<FileSystemFileHandle>> showOpenFilePicker(JSObject options) =>
     jsWindow.showOpenFilePicker(options);
 
 // ---------------------------------------------------------------------------

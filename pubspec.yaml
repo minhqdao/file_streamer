@@ -15,14 +15,14 @@ topics:
   - wasm
 
 environment:
-  sdk: "^3.6.0"
+  sdk: "^3.10.0"
 
 dependencies:
-  file_picker: ^11.0.2
-  mime: ^2.0.0
+  file_picker: ^13.1.0
+  mime: ^2.1.0
   web: ^1.1.1
 
 dev_dependencies:
-  lint: ^2.8.0
+  lint: ^2.13.0
   path: ^1.9.1
-  test: ^1.31.0
+  test: ^1.32.0

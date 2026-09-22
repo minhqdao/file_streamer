@@ -65,8 +65,10 @@ void main() {
 
       final chunks = await stream.toList();
       expect(chunks.length, equals(10));
-      expect(Uint8List.fromList(chunks.expand((c) => c).toList()),
-          equals(content));
+      expect(
+        Uint8List.fromList(chunks.expand((c) => c).toList()),
+        equals(content),
+      );
     });
 
     test('should throw error for non-existent path', () {
@@ -84,8 +86,9 @@ void main() {
     late Directory tempDir;
 
     setUp(() {
-      tempDir =
-          Directory.systemTemp.createTempSync('file_streamer_cli_io_test_');
+      tempDir = Directory.systemTemp.createTempSync(
+        'file_streamer_cli_io_test_',
+      );
     });
 
     tearDown(() {

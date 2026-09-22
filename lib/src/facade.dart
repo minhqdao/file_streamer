@@ -9,8 +9,8 @@ import 'package:file_streamer/src/streamable_file.dart';
 
 /// Static entry point for file picking and streaming operations.
 ///
-/// This facade selects the appropriate platform implementation (Web or Native IO)
-/// to handle file access.
+/// This facade selects the appropriate platform implementation
+/// (Web or Native IO) to handle file access.
 abstract final class FileStreamer {
   FileStreamer._();
 
@@ -23,8 +23,7 @@ abstract final class FileStreamer {
   /// Throws a [FilePickerException] if the operation is cancelled or fails.
   static Future<FilePickerResult<Object>> pickFiles([
     PickerOptions options = const PickerOptions(),
-  ]) =>
-      FileStreamerPlatform.instance.pickFiles(options);
+  ]) => FileStreamerPlatform.instance.pickFiles(options);
 
   /// Creates a [StreamableFile] from a local file path.
   ///
@@ -46,9 +45,5 @@ abstract final class FileStreamer {
   static Stream<Uint8List> openReadStream(
     PickedFile<Object> file, {
     ReadStreamOptions options = const ReadStreamOptions(),
-  }) =>
-      FileStreamerPlatform.instance.openReadStream(
-        file,
-        options: options,
-      );
+  }) => FileStreamerPlatform.instance.openReadStream(file, options: options);
 }

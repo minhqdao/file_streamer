@@ -272,7 +272,8 @@ class BuildTaskTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${(task.file.size / 1024).toStringAsFixed(2)} KB • ${task.file.mimeType}',
+            '${(task.file.size / 1024).toStringAsFixed(2)} KB • '
+            '${task.file.mimeType}',
           ),
           if (task.error != null)
             SelectableText(

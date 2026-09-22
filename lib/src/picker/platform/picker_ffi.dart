@@ -24,30 +24,55 @@ Future<FilePickerResult<String>> pickFilesNative(PickerOptions options) async {
       allowedExtensions = options.filters.expand((f) => f.extensions).toList();
     }
 
-    final result = await fp.FilePicker.pickFiles(
-      allowMultiple: options.allowMultiple,
-      type: type,
-      allowedExtensions: allowedExtensions,
-      initialDirectory: options.startDirectory,
-    );
+    final List<fp.PlatformFile> platformFiles;
+    if (options.allowMultiple) {
+      platformFiles = await fp.FilePicker.pickFiles(
+        type: type,
+        allowedExtensions: allowedExtensions,
+        initialDirectory: options.startDirectory,
+      );
+    } else {
+      final single = await fp.FilePicker.pickFile(
+        type: type,
+        allowedExtensions: allowedExtensions,
+        initialDirectory: options.startDirectory,
+      );
+      platformFiles = single == null ? const [] : [single];
+    }
 
-    if (result == null || result.files.isEmpty) {
+    if (platformFiles.isEmpty) {
       return const FilePickerResult(files: []);
     }
 
     final pickedFiles = <PickedFile<String>>[];
-    for (final platformFile in result.files) {
+    for (final platformFile in platformFiles) {
       final path = platformFile.path;
       if (path == null) continue;
 
-      final stat = io.File(path).statSync();
-      pickedFiles.add(PickedFile(
-        name: platformFile.name,
-        size: platformFile.size,
-        mimeType: lookupMimeType(path) ?? 'application/octet-stream',
-        lastModified: stat.modified,
-        handle: path,
-      ));
+      int? statSize;
+      var lastModified = DateTime.fromMillisecondsSinceEpoch(0);
+      try {
+        final stat = io.File(path).statSync();
+        statSize = stat.size;
+        lastModified = stat.modified;
+      } on Object {
+        // Keep epoch fallback when stat fails.
+      }
+
+      final size =
+          platformFile.lengthSync() ??
+          await platformFile.length() ??
+          statSize ??
+          0;
+      pickedFiles.add(
+        PickedFile(
+          name: platformFile.name,
+          size: size,
+          mimeType: lookupMimeType(path) ?? 'application/octet-stream',
+          lastModified: lastModified,
+          handle: path,
+        ),
+      );
     }
 
     return FilePickerResult(files: pickedFiles);

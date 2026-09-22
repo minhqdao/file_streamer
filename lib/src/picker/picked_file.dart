@@ -32,8 +32,10 @@ final class PickedFile<H extends Object> {
   final H handle;
 
   @override
-  String toString() =>
-      'PickedFile<$H>(name: $name, size: ${_formatSize(size)}, mimeType: $mimeType)';
+  String toString() {
+    return 'PickedFile<$H>(name: $name, size: ${_formatSize(size)}, '
+        'mimeType: $mimeType)';
+  }
 
   String _formatSize(int bytes) {
     if (bytes < 1024) return '${bytes}B';

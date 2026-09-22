@@ -52,14 +52,12 @@ base class FileStreamerIO extends FileStreamerPlatform<String> {
   }) {
     return Stream.error(
       const ReadStreamException(
-          'Blobs are only supported on the Web platform.'),
+        'Blobs are only supported on the Web platform.',
+      ),
     );
   }
 
-  Stream<Uint8List> _rechunk(
-    Stream<List<int>> source,
-    int chunkSize,
-  ) async* {
+  Stream<Uint8List> _rechunk(Stream<List<int>> source, int chunkSize) async* {
     final buffer = _ChunkBuffer(chunkSize);
     await for (final incoming in source) {
       var offset = 0;
