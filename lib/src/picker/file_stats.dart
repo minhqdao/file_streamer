@@ -5,30 +5,33 @@ library;
 
 import 'dart:io' as io;
 
+import 'package:file_streamer/src/picker/picker_exceptions.dart';
+
 /// Resolves the [size] and [lastModified] of a picked native [path].
 ///
 /// [syncLength] is the size reported without I/O
 /// (PlatformFile.lengthSync), [readLength] resolves it with I/O
-/// (PlatformFile.length). Falls back to a filesystem stat, then to
-/// size 0 and epoch when the file is missing: statSync() reports
-/// notFound with size -1 instead of throwing, which must not leak
-/// into PickedFile's non-negative size assert.
+/// (PlatformFile.length). Falls back to a filesystem stat.
+///
+/// Fails loudly with [FilePickerException] naming [path] when the
+/// file is missing or inaccessible: statSync() reports notFound
+/// with size -1 instead of throwing, which must not leak into
+/// PickedFile's non-negative size assert as a fictional size 0.
 Future<({int size, DateTime lastModified})> resolveNativeFileStat(
   String path, {
   int? syncLength,
   Future<int?> Function()? readLength,
 }) async {
-  int? statSize;
-  var lastModified = DateTime.fromMillisecondsSinceEpoch(0);
   try {
     final stat = io.File(path).statSync();
-    if (stat.type != io.FileSystemEntityType.notFound) {
-      statSize = stat.size;
-      lastModified = stat.modified;
+    if (stat.type == io.FileSystemEntityType.notFound) {
+      throw FilePickerException('Picked file is no longer accessible: $path');
     }
-  } on Object {
-    // Keep epoch fallback when stat fails.
+    final size = syncLength ?? await readLength?.call() ?? stat.size;
+    return (size: size, lastModified: stat.modified);
+  } on FilePickerException {
+    rethrow;
+  } on Object catch (e) {
+    throw FilePickerException('Cannot access picked file: $path', cause: e);
   }
-  final size = syncLength ?? await readLength?.call() ?? statSize ?? 0;
-  return (size: size, lastModified: lastModified);
 }

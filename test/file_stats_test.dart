@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 
 import 'package:file_streamer/src/picker/file_stats.dart';
+import 'package:file_streamer/src/picker/picker_exceptions.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -47,20 +48,24 @@ void main() {
       expect(resolved.size, 7);
     });
 
-    test('missing file resolves to size 0 and epoch', () async {
-      final resolved = await resolveNativeFileStat('${tempDir.path}/gone.txt');
-
-      expect(resolved.size, 0);
-      expect(resolved.lastModified, DateTime.fromMillisecondsSinceEpoch(0));
+    test('missing file fails loudly with its path', () async {
+      await expectLater(
+        resolveNativeFileStat('${tempDir.path}/gone.txt'),
+        throwsA(
+          isA<FilePickerException>().having(
+            (e) => e.message,
+            'message',
+            contains('gone.txt'),
+          ),
+        ),
+      );
     });
 
-    test('stat failure keeps the reported length', () async {
-      final resolved = await resolveNativeFileStat(
-        '${tempDir.path}/gone.txt',
-        syncLength: 9,
+    test('missing file fails even with reported length', () async {
+      await expectLater(
+        resolveNativeFileStat('${tempDir.path}/gone.txt', syncLength: 9),
+        throwsA(isA<FilePickerException>()),
       );
-
-      expect(resolved.size, 9);
     });
   });
 }
