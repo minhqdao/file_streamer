@@ -121,3 +121,9 @@ dart test
 ```bash
 dart test -p chrome
 ```
+
+WebAssembly `browser` tests are ran with:
+
+```bash
+dart test -p chrome --compiler dart2wasm
+```

@@ -53,3 +53,13 @@ jobs:
             - uses: subosito/flutter-action@v2
             - run: dart pub get --no-example
             - run: dart test -p chrome
+
+    test-wasm:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: dart-lang/setup-dart@v1
+            - uses: subosito/flutter-action@v2
+            - run: dart pub get --no-example
+            - name: Run browser tests compiled to Wasm
+              run: dart test -p chrome --compiler dart2wasm
