@@ -63,3 +63,17 @@ jobs:
             - run: dart pub get --no-example
             - name: Run browser tests compiled to Wasm
               run: dart test -p chrome --compiler dart2wasm
+
+    coverage:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: dart-lang/setup-dart@v1
+            - uses: subosito/flutter-action@v2
+            - run: dart pub get --no-example
+            - run: dart pub global activate coverage
+            - run: dart test --coverage=coverage
+            - name: Enforce minimum line coverage
+              run: |
+                dart pub global run coverage:format_coverage --packages=.dart_tool/package_config.json --report-on=lib --lcov -o coverage/lcov.info -i coverage
+                awk -F'[:,]' '/^DA:/{t++; if ($3 > 0) h++} END {pct=(t ? 100*h/t : 100); printf "line coverage: %.1f%% (%d/%d)\n", pct, h, t; exit (pct < 65)}' coverage/lcov.info
