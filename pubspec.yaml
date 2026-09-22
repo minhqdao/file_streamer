@@ -1,7 +1,7 @@
 name: file_streamer
 description: A zero-retention, stream-first file access library for Dart & Flutter.
 
-version: 0.1.0
+version: 0.2.0
 
 repository: https://github.com/minhqdao/file_streamer
 homepage: https://github.com/minhqdao/file_streamer
